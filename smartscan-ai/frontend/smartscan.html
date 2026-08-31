@@ -34,8 +34,19 @@
   --green-bg:      rgba(74,222,128,0.12);
   --green-border:  rgba(74,222,128,0.30);
   --red:           #F87171;
+  --red-bg:        rgba(248,113,113,0.12);
+  --red-border:    rgba(248,113,113,0.30);
   --amber:         #FBBF24;
+  --amber-bg:      rgba(251,191,36,0.12);
+  --amber-border:  rgba(251,191,36,0.30);
   --blue:          #60A5FA;
+  --blue-bg:       rgba(96,165,250,0.12);
+  --blue-border:   rgba(96,165,250,0.30);
+  
+  --r-sm: 4px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 14px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
   
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
@@ -64,79 +75,164 @@ body { font-family: var(--font-sans); background: var(--bg-app); color: var(--te
 a { color: var(--active); text-decoration: none; }
 button { font-family: var(--font-sans); cursor: pointer; border: none; background: none; color: inherit; }
 select, input, textarea { font-family: var(--font-sans); color: var(--text-main); }
+::selection { background: var(--highlight); color: var(--brand); }
 
 /* TOP NAV BAR */
 .top-nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   height: var(--top-nav-h); background: var(--brand); border-bottom: 1px solid rgba(255,255,255,0.1);
-  display: flex; align-items: center; padding: 0 20px; gap: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  display: flex; align-items: center; padding: 0 20px; gap: 16px; box-shadow: var(--shadow-md);
 }
 .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; flex-shrink: 0; }
-.nav-logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700; font-size: 14px; color: #fff; }
+.nav-logo-mark { width: 32px; height: 32px; border-radius: var(--r-md); background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700; font-size: 14px; color: #fff; box-shadow: 0 0 10px rgba(220,88,109,0.5); }
 .nav-brand-title { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: 0.04em; }
 .nav-brand-sub { font-size: 10px; color: rgba(255,255,255,0.6); display: block; }
-.sidebar-toggle-btn { width: 32px; height: 32px; border-radius: 4px; color: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; }
+.sidebar-toggle-btn { width: 32px; height: 32px; border-radius: var(--r-sm); color: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+.sidebar-toggle-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+.search-trigger {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--r-md); padding: 5px 12px; font-size: 12px; color: rgba(255,255,255,0.6);
+  cursor: pointer; width: 220px; transition: all 0.15s;
+}
+.search-trigger:hover { background: rgba(0,0,0,0.35); border-color: rgba(255,255,255,0.3); color: #fff; }
+.kbd-shortcut { background: rgba(255,255,255,0.15); border-radius: 3px; padding: 1px 5px; font-family: var(--font-mono); font-size: 10px; margin-left: auto; }
 
 .mode-toggle-group { display: flex; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 2px; }
 .mode-toggle-btn { padding: 4px 12px; font-size: 11px; font-weight: 600; border-radius: 16px; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.15s; }
-.mode-toggle-btn.active { background: var(--accent); color: #fff; shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.mode-toggle-btn.active { background: var(--accent); color: #fff; box-shadow: var(--shadow-sm); }
+
+.mega-menu-container { position: relative; }
+.btn-mega-menu { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.8); padding: 6px 12px; border-radius: var(--r-sm); }
+.btn-mega-menu:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.mega-dropdown {
+  position: absolute; top: calc(100% + 8px); left: 0; width: 560px;
+  background: var(--bg-surface); border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-lg); padding: 20px;
+  display: none; grid-template-columns: repeat(3, 1fr); gap: 16px; z-index: 120;
+}
+.mega-dropdown.open { display: grid; }
+.mega-col-title { font-size: 10px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.mega-item { display: block; padding: 6px 8px; border-radius: var(--r-sm); font-size: 12px; color: var(--text-main); transition: background 0.12s; }
+.mega-item:hover { background: var(--bg-hover); color: var(--active); }
+.mega-item-desc { font-size: 10px; color: var(--text-muted); display: block; }
 
 .nav-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
 .status-badge { font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px; }
 .status-badge.live { background: rgba(74,222,128,0.15); color: #4ADE80; border: 1px solid rgba(74,222,128,0.3); }
 .status-badge.demo { background: rgba(255,187,148,0.18); color: var(--peak); border: 1px solid rgba(255,187,148,0.35); }
+.status-dot-pulse { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-/* LAYOUT */
+/* APP LAYOUT FRAME */
 .app-container { display: flex; margin-top: var(--top-nav-h); min-height: calc(100vh - var(--top-nav-h)); }
-.sidebar { width: var(--sidebar-w); background: var(--bg-subtle); border-right: 1px solid var(--border-app); display: flex; flex-direction: column; position: sticky; top: var(--top-nav-h); height: calc(100vh - var(--top-nav-h)); overflow-y: auto; transition: margin-left 0.2s; }
+.sidebar {
+  width: var(--sidebar-w); background: var(--bg-subtle); border-right: 1px solid var(--border-app);
+  display: flex; flex-direction: column; position: sticky; top: var(--top-nav-h);
+  height: calc(100vh - var(--top-nav-h)); overflow-y: auto; transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
 .sidebar.collapsed { margin-left: calc(-1 * var(--sidebar-w)); }
 .sidebar-section { padding: 16px 12px 4px; font-size: 10px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
-.sidebar-item { display: flex; align-items: center; gap: 12px; padding: 9px 14px; margin: 2px 8px; border-radius: 8px; font-size: 12.5px; font-weight: 500; color: var(--text-muted); cursor: pointer; }
+.sidebar-item {
+  display: flex; align-items: center; gap: 12px; padding: 9px 14px; margin: 2px 8px;
+  border-radius: var(--r-md); font-size: 12.5px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.12s;
+}
 .sidebar-item:hover { background: var(--bg-hover); color: var(--text-main); }
-.sidebar-item.active { background: var(--accent); color: #fff; font-weight: 600; }
+.sidebar-item.active { background: var(--accent); color: #fff; font-weight: 600; box-shadow: var(--shadow-sm); }
+.sidebar-icon { font-size: 14px; width: 18px; text-align: center; }
 
 .main-content { flex: 1; min-width: 0; background: var(--bg-app); display: flex; flex-direction: column; }
+.breadcrumb-bar {
+  padding: 12px 24px; background: var(--bg-surface); border-bottom: 1px solid var(--border-app);
+  display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted);
+}
+.breadcrumb-item { color: var(--text-muted); }
+.breadcrumb-item:hover { color: var(--text-main); }
+.breadcrumb-sep { color: var(--text-faint); font-size: 10px; }
+.breadcrumb-current { color: var(--text-main); font-weight: 600; }
+
 .page-view { display: none; padding: 24px; max-width: 1600px; width: 100%; margin: 0 auto; }
 .page-view.active { display: block; }
 
+/* TABS SYSTEM */
+.tab-bar { display: flex; gap: 8px; border-bottom: 1px solid var(--border-app); margin-bottom: 20px; flex-wrap: wrap; }
+.tab-btn { padding: 8px 16px; font-size: 12.5px; font-weight: 500; color: var(--text-muted); border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.12s; }
+.tab-btn:hover { color: var(--text-main); }
+.tab-btn.active { color: var(--active); border-bottom-color: var(--active); font-weight: 600; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
 /* CARDS & PANELS */
-.card { background: var(--bg-card); border: 1px solid var(--border-app); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); overflow: hidden; }
+.card { background: var(--bg-card); border: 1px solid var(--border-app); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
 .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border-app); display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--bg-surface); }
 .card-title { font-size: 13.5px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
 .card-body { padding: 20px; }
 .card-body-sm { padding: 12px 16px; }
 
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }
-.kpi-card { background: var(--bg-surface); border: 1px solid var(--border-app); border-radius: 12px; padding: 16px; }
+.kpi-card { background: var(--bg-surface); border: 1px solid var(--border-app); border-radius: var(--r-lg); padding: 16px; box-shadow: var(--shadow-sm); }
 .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-.kpi-value { font-size: 26px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main); }
+.kpi-value { font-size: 26px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main); line-height: 1; }
 .kpi-value.accent { color: var(--active); }
+.kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-faint); padding: 12px 16px; border-bottom: 1px solid var(--border-app); text-transform: uppercase; letter-spacing: 0.06em; background: var(--bg-surface-2); }
+.data-table td { padding: 10px 16px; border-bottom: 1px solid var(--border-app); color: var(--text-main); vertical-align: middle; }
+.data-table td.mono { font-family: var(--font-mono); font-size: 12px; }
+.data-table tbody tr:hover { background: var(--bg-hover); }
+.data-table tbody tr.winner td { color: var(--active); font-weight: 600; }
+
+.cm-grid { display: grid; grid-template-columns: 100px repeat(2, 1fr); gap: 2px; background: var(--border-app); padding: 2px; border-radius: var(--r-md); max-width: 420px; font-family: var(--font-mono); }
+.cm-cell { background: var(--bg-surface); padding: 12px; text-align: center; font-size: 13px; }
+.cm-header { font-weight: 700; color: var(--text-muted); font-size: 11px; }
+.cm-val { font-size: 18px; font-weight: 700; color: var(--active); }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; font-family: var(--font-mono); padding: 2px 8px; border-radius: var(--r-sm); border: 1px solid transparent; letter-spacing: 0.03em; }
+.badge-green { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+.badge-red { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+.badge-amber { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-border); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-border); }
+.badge-neutral { background: var(--bg-surface-2); color: var(--text-muted); border-color: var(--border-app); }
 
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-.sim-layout-grid { display: grid; grid-template-columns: 280px minmax(0,1fr) 320px; gap: 20px; }
-@media (max-width: 1200px) { .sim-layout-grid { grid-template-columns: 1fr; } .grid-2 { grid-template-columns: 1fr; } }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.sim-layout-grid { display: grid; grid-template-columns: 280px minmax(0,1fr) 320px; gap: 20px; align-items: start; }
+@media (max-width: 1200px) { .sim-layout-grid { grid-template-columns: 1fr; } .grid-3 { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 768px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } .sidebar { position: fixed; z-index: 90; } }
 
-/* BUTTONS & BADGES */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 1px solid transparent; cursor: pointer; white-space: nowrap; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 7px 16px; border-radius: var(--r-md); font-size: 13px; font-weight: 500; border: 1px solid transparent; transition: all 0.12s; cursor: pointer; white-space: nowrap; }
+.btn:active { transform: scale(0.97); }
 .btn-primary { background: var(--brand); color: #fff; border-color: var(--brand); }
 .btn-primary:hover { background: var(--accent); }
 .btn-secondary { background: var(--bg-surface); color: var(--text-main); border-color: var(--border-strong); }
+.btn-secondary:hover { background: var(--bg-hover); border-color: var(--accent); color: var(--active); }
+.btn-ghost { background: transparent; color: var(--text-muted); }
+.btn-ghost:hover { background: var(--bg-hover); color: var(--text-main); }
 .btn-sm { padding: 4px 10px; font-size: 12px; }
-
-.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; font-family: var(--font-mono); padding: 2px 8px; border-radius: 4px; border: 1px solid transparent; }
-.badge-green { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
-.badge-amber { background: rgba(251,191,36,0.12); color: var(--amber); border-color: rgba(251,191,36,0.3); }
-
-.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.data-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-faint); padding: 12px 16px; border-bottom: 1px solid var(--border-app); text-transform: uppercase; background: var(--bg-surface-2); }
-.data-table td { padding: 10px 16px; border-bottom: 1px solid var(--border-app); color: var(--text-main); }
-.data-table td.mono { font-family: var(--font-mono); font-size: 12px; }
-.data-table tbody tr.winner td { color: var(--active); font-weight: 600; }
 
 .form-group { display: flex; flex-direction: column; gap: 4px; }
 .form-label { font-size: 11.5px; font-weight: 600; color: var(--text-muted); }
-.form-control { background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: 8px; color: var(--text-main); font-size: 12.5px; padding: 6px 12px; }
+.form-control { background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--r-md); color: var(--text-main); font-size: 12.5px; padding: 6px 12px; width: 100%; }
 
+.hero-card { background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 60%, var(--accent) 100%); border-radius: var(--r-xl); padding: 40px 32px; color: #fff; margin-bottom: 24px; box-shadow: var(--shadow-lg); }
+.hero-title { font-size: 38px; font-weight: 800; line-height: 1.15; margin-bottom: 16px; letter-spacing: -0.02em; }
+.hero-title span { color: var(--peak); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
+.modal-overlay.open { display: flex; }
+.modal-card { background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--r-xl); width: 100%; max-width: 600px; box-shadow: var(--shadow-lg); overflow: hidden; }
+.modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border-app); display: flex; align-items: center; justify-content: space-between; }
+
+.drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; }
+.drawer-overlay.open { display: block; }
+.drawer-panel { position: fixed; right: 0; top: 0; bottom: 0; width: 540px; max-width: 92vw; background: var(--bg-surface); z-index: 201; box-shadow: var(--shadow-lg); transform: translateX(100%); transition: transform 0.25s ease; display: flex; flex-direction: column; }
+.drawer-panel.open { transform: translateX(0); }
+
+.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 250; display: flex; flex-direction: column; gap: 8px; }
+.toast-item { background: var(--bg-surface); border: 1px solid var(--border-strong); border-left: 4px solid var(--active); border-radius: var(--r-md); padding: 10px 16px; font-size: 12.5px; color: var(--text-main); box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 10px; }
+
+.app-footer { background: var(--bg-subtle); border-top: 1px solid var(--border-app); padding: 32px 24px 24px; margin-top: auto; font-size: 12.5px; color: var(--text-muted); }
 .section-gap { margin-bottom: 24px; }
 .mt-4 { margin-top: 16px; }
 </style>
@@ -145,7 +241,7 @@ select, input, textarea { font-family: var(--font-sans); color: var(--text-main)
 
 <!-- TOP NAV BAR -->
 <header class="top-nav">
-  <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar">☰</button>
+  <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar (Ctrl+B)">☰</button>
   <a class="nav-brand" href="#" onclick="navigate('overview')">
     <div class="nav-logo-mark">S</div>
     <div>
@@ -154,10 +250,41 @@ select, input, textarea { font-family: var(--font-sans); color: var(--text-main)
     </div>
   </a>
 
-  <!-- DUAL UI MODE TOGGLE (PRESENTATION vs RESEARCH) -->
+  <!-- Global Search Trigger -->
+  <div class="search-trigger" onclick="openSearch()">
+    🔍 Search modules, datasets, specs...
+    <span class="kbd-shortcut">Ctrl+K</span>
+  </div>
+
+  <!-- DUAL UI MODE TOGGLE -->
   <div class="mode-toggle-group">
     <div class="mode-toggle-btn active" id="btnModePres" onclick="setUIMode('presentation')">📺 PRESENTATION</div>
     <div class="mode-toggle-btn" id="btnModeRes" onclick="setUIMode('research')">🔬 RESEARCH LABS</div>
+  </div>
+
+  <!-- Mega Menu Dropdown -->
+  <div class="mega-menu-container">
+    <button class="btn-mega-menu" onclick="toggleMegaMenu()">Modules ▾</button>
+    <div class="mega-dropdown" id="megaDropdown">
+      <div>
+        <div class="mega-col-title">Core Platform</div>
+        <a class="mega-item" href="#" onclick="navigate('overview')">Overview</a>
+        <a class="mega-item" href="#" onclick="navigate('data')">Data Explorer</a>
+        <a class="mega-item" href="#" onclick="navigate('simulation')">Live Simulation</a>
+      </div>
+      <div>
+        <div class="mega-col-title">Intelligence & ML</div>
+        <a class="mega-item" href="#" onclick="navigate('intelligence')">Predictive Intelligence</a>
+        <a class="mega-item" href="#" onclick="navigate('ml-eval')">ML Performance</a>
+        <a class="mega-item" href="#" onclick="navigate('leakage')">Data Leakage & Health</a>
+      </div>
+      <div>
+        <div class="mega-col-title">Research & Support</div>
+        <a class="mega-item" href="#" onclick="navigate('benchmarks')">Policy Benchmarks</a>
+        <a class="mega-item" href="#" onclick="navigate('counterfactual')">Counterfactual Replay</a>
+        <a class="mega-item" href="#" onclick="navigate('ablation')">Ablation Lab</a>
+      </div>
+    </div>
   </div>
 
   <div class="nav-actions">
@@ -170,20 +297,46 @@ select, input, textarea { font-family: var(--font-sans); color: var(--text-main)
 </header>
 
 <div class="app-container">
-  <!-- SIDEBAR -->
+  <!-- SIDEBAR NAVIGATION -->
   <aside class="sidebar" id="appSidebar">
     <div class="sidebar-section">Main Menu</div>
-    <a class="sidebar-item active" data-page="overview" onclick="navigate('overview')">📊 Overview</a>
-    <a class="sidebar-item" data-page="data" onclick="navigate('data')">📡 Dataset Explorer</a>
-    <a class="sidebar-item" data-page="simulation" onclick="navigate('simulation')">▶ Live Simulation</a>
-    <a class="sidebar-item" data-page="intelligence" onclick="navigate('intelligence')">🧠 ML Intelligence</a>
+    <a class="sidebar-item active" data-page="overview" onclick="navigate('overview')">
+      <span class="sidebar-icon">📊</span> Overview
+    </a>
+    <a class="sidebar-item" data-page="data" onclick="navigate('data')">
+      <span class="sidebar-icon">📡</span> Data Explorer
+    </a>
+    <a class="sidebar-item" data-page="simulation" onclick="navigate('simulation')">
+      <span class="sidebar-icon">▶</span> Live Simulation
+    </a>
+    <a class="sidebar-item" data-page="intelligence" onclick="navigate('intelligence')">
+      <span class="sidebar-icon">🧠</span> ML Intelligence
+    </a>
 
     <div class="sidebar-section research-only">Research & Labs</div>
-    <a class="sidebar-item research-only" data-page="ml-eval" onclick="navigate('ml-eval')">🎯 ML Performance</a>
-    <a class="sidebar-item research-only" data-page="benchmarks" onclick="navigate('benchmarks')">🏆 Policy Benchmarks</a>
-    <a class="sidebar-item research-only" data-page="counterfactual" onclick="navigate('counterfactual')">⏪ Counterfactual Replay</a>
-    <a class="sidebar-item research-only" data-page="ablation" onclick="navigate('ablation')">🧪 Ablation Lab</a>
-    <a class="sidebar-item research-only" data-page="leakage" onclick="navigate('leakage')">🛡️ Data Leakage & Health</a>
+    <a class="sidebar-item research-only" data-page="ml-eval" onclick="navigate('ml-eval')">
+      <span class="sidebar-icon">🎯</span> ML Performance
+    </a>
+    <a class="sidebar-item research-only" data-page="benchmarks" onclick="navigate('benchmarks')">
+      <span class="sidebar-icon">🏆</span> Policy Benchmarks
+    </a>
+    <a class="sidebar-item research-only" data-page="counterfactual" onclick="navigate('counterfactual')">
+      <span class="sidebar-icon">⏪</span> Counterfactual Replay
+    </a>
+    <a class="sidebar-item research-only" data-page="ablation" onclick="navigate('ablation')">
+      <span class="sidebar-icon">🧪</span> Ablation Lab
+    </a>
+    <a class="sidebar-item research-only" data-page="leakage" onclick="navigate('leakage')">
+      <span class="sidebar-icon">🛡️</span> Data Leakage & Health
+    </a>
+    <a class="sidebar-item research-only" data-page="documentation" onclick="navigate('documentation')">
+      <span class="sidebar-icon">📖</span> Documentation
+    </a>
+
+    <div class="sidebar-section">Project Info</div>
+    <a class="sidebar-item" data-page="team" onclick="navigate('team')">
+      <span class="sidebar-icon">👥</span> Team & About
+    </a>
   </aside>
 
   <!-- MAIN CONTENT -->
@@ -191,23 +344,49 @@ select, input, textarea { font-family: var(--font-sans); color: var(--text-main)
     <!-- HARDWARE STATUS BAR -->
     <div style="background:var(--bg-surface); border-bottom:1px solid var(--border-app); padding:8px 24px; display:flex; gap:20px; font-size:11.5px; font-family:var(--font-mono); flex-wrap:wrap;">
       <div><span style="color:var(--text-faint)">DATA SOURCE:</span> <span style="color:var(--green)" id="sdrSource">REAL RF REPLAY</span></div>
-      <div><span style="color:var(--text-faint)">DEVICE:</span> <span id="sdrDevice">ReplayReceiver (SigMF/PSD)</span></div>
+      <div><span style="color:var(--text-faint)">RECEIVER:</span> <span id="sdrDevice">ReplayReceiver (SigMF/PSD)</span></div>
       <div><span style="color:var(--text-faint)">CENTER FREQ:</span> <span id="sdrFreq">2440.00 MHz</span></div>
       <div><span style="color:var(--text-faint)">SAMPLE RATE:</span> <span id="sdrRate">20.00 MSps</span></div>
       <div><span style="color:var(--text-faint)">BANDWIDTH:</span> <span id="sdrBw">2.50 MHz</span></div>
-      <div><span style="color:var(--text-faint)">DROPPED:</span> <span id="sdrDrop">0</span></div>
+      <div><span style="color:var(--text-faint)">DROPPED SAMPLES:</span> <span id="sdrDrop">0</span></div>
       <div><span style="color:var(--text-faint)">LATENCY:</span> <span id="sdrLat">0.12 ms</span></div>
     </div>
 
+    <!-- Breadcrumb Bar -->
+    <nav class="breadcrumb-bar" aria-label="Breadcrumb">
+      <a class="breadcrumb-item" href="#" onclick="navigate('overview')">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current" id="breadcrumbCurrent">Overview</span>
+    </nav>
+
     <!-- PAGE 1: OVERVIEW -->
     <section id="page-overview" class="page-view active">
-      <div style="background:linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 60%, var(--accent) 100%); border-radius:16px; padding:40px 32px; color:#fff; margin-bottom:24px;">
+      <div class="hero-card">
         <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; opacity:0.8; margin-bottom:12px;">SIH 2026 · Problem Statement 26055</div>
-        <h1 style="font-size:36px; font-weight:800; line-height:1.15; margin-bottom:16px;">Adaptive Predictive Frequency-Time Scheduling<br><span style="color:var(--peak)">for Electronic Support</span></h1>
+        <h1 class="hero-title">Adaptive Predictive Frequency-Time<br><span>Scheduling for Electronic Support</span></h1>
         <p style="font-size:15px; max-width:680px; opacity:0.85; line-height:1.6; margin-bottom:24px;">SmartScan AI optimizes narrowband receiver sensing under strict partial observability—predicting emitter activity, tracking Bayesian model uncertainty, and minimizing interception latency over real RF recordings.</p>
-        <div style="display:flex; gap:12px;">
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
           <button class="btn btn-primary" onclick="navigate('simulation')">▶ Launch Simulation</button>
           <button class="btn btn-secondary" onclick="navigate('data')">📡 Explore Real Datasets</button>
+        </div>
+      </div>
+
+      <div class="grid-2 section-gap">
+        <div class="card">
+          <div class="card-header"><div class="card-title">⚠️ Problem Statement</div></div>
+          <div class="card-body">
+            <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6;">
+              Narrowband receivers have limited instantaneous bandwidth ($B_{\text{instant}} \ll B_{\text{total}}$). Traditional sequential scanning cycles blindly ($F_1 \to F_2 \to \dots \to F_N$), suffering high intercept latency and missing short bursty signals.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">✨ SmartScan Solution</div></div>
+          <div class="card-body">
+            <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6;">
+              SmartScan evaluates candidate frequencies using a multi-objective utility function blending predicted activity, Beta variance uncertainty, autocorrelation periodicity, and tuning switch costs—operating under strict partial observability.
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -215,8 +394,19 @@ select, input, textarea { font-family: var(--font-sans); color: var(--text-main)
     <!-- PAGE 2: DATA EXPLORER -->
     <section id="page-data" class="page-view">
       <div class="card section-gap">
-        <div class="card-header"><div class="card-title">📁 Registered Real RF Datasets (SigMF / PSD / IQ)</div></div>
+        <div class="card-header"><div class="card-title">📁 Registered Real RF Datasets (SigMF / PSD / IQ / Parquet / HDF5)</div></div>
         <div class="card-body-sm" id="datasetList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">RF Spectrogram Explorer <span class="badge badge-amber">DEMO SAMPLE</span></div>
+          <button class="btn btn-secondary btn-sm" onclick="loadExplorerRecording()">Reload Sample</button>
+        </div>
+        <div class="card-body">
+          <canvas id="explorer-canvas" style="width:100%; height:260px; display:block; background:#0E0A16; border-radius:var(--r-md);"></canvas>
+          <div class="mt-4" id="explorerFreqAxis" style="display:flex; justify-space-between; font-family:var(--font-mono); font-size:11px; color:var(--text-muted);"></div>
+        </div>
       </div>
     </section>
 
@@ -228,9 +418,11 @@ select, input, textarea { font-family: var(--font-sans); color: var(--text-main)
             <label class="form-label">Scenario</label>
             <select class="form-control" id="selScenario" onchange="resetSim()">
               <option value="multi" selected>Multi-Emitter</option>
+              <option value="coldStart">Cold Start</option>
               <option value="periodic">Periodic Emitter</option>
               <option value="agile">Frequency Agile</option>
               <option value="behaviorChange">Behavior Change</option>
+              <option value="highNoise">High Noise</option>
             </select>
           </div>
           <div class="form-group">
@@ -241,48 +433,171 @@ select, input, textarea { font-family: var(--font-sans); color: var(--text-main)
               <option value="sequential">Sequential</option>
               <option value="ucb">UCB</option>
               <option value="thompson">Thompson Sampling</option>
+              <option value="gruGreedy">GRU-Greedy</option>
             </select>
           </div>
+          <div class="form-group">
+            <label class="form-label">Predictor</label>
+            <select class="form-control" id="selModel">
+              <option value="adaptive" selected>Adaptive Blend</option>
+              <option value="ensemble">Ensemble</option>
+              <option value="ewma">EWMA</option>
+              <option value="markov">Markov</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Speed</label>
+            <select class="form-control" id="selSpeed">
+              <option value="900">Slow</option>
+              <option value="450" selected>Medium</option>
+              <option value="180">Fast</option>
+              <option value="60">Turbo</option>
+            </select>
+          </div>
+
           <div style="display:flex; gap:8px; margin-left:auto; align-items:center;">
             <button class="btn btn-primary" onclick="startLoop()">▶ Run</button>
             <button class="btn btn-secondary" onclick="togglePause()">⏸ Pause</button>
-            <button class="btn btn-secondary" onclick="resetSim()">Reset</button>
+            <button class="btn btn-ghost" onclick="stepOnce()">Step</button>
+            <button class="btn btn-ghost" onclick="resetSim()">Reset</button>
           </div>
         </div>
       </div>
 
       <div class="sim-layout-grid section-gap">
-        <div class="card">
-          <div class="card-header"><div class="card-title">Receiver Status</div></div>
-          <div class="card-body-sm">
-            <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Current Band</span><span class="badge badge-brand" id="rxFreqLeft">F1</span></div>
-            <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Detection</span><span id="rxDetLeft">—</span></div>
-            <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">SNR Estimate</span><span class="mono" id="rxSnrLeft">—</span></div>
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Receiver Status</div></div>
+            <div class="card-body-sm">
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Current Band</span><span class="badge badge-brand" id="rxFreqLeft">F1</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Detection</span><span id="rxDetLeft">—</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">SNR Estimate</span><span class="mono" id="rxSnrLeft">—</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Confidence</span><span class="mono" id="rxConfLeft">—</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">ML Model Status</div></div>
+            <div class="card-body-sm">
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Model</span><span class="mono" id="mlName">Adaptive</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Accuracy</span><span class="mono" id="mlAcc">—</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Error EMA</span><span class="mono" id="mlErr">—</span></div>
+            </div>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-header"><div class="card-title">RF Activity Spectrogram Waterfall <span class="badge badge-green">REAL DATA</span></div></div>
+          <div class="card-header">
+            <div class="card-title">RF Activity Spectrogram Waterfall <span class="badge badge-green">REAL DATA</span></div>
+            <span class="mono" style="font-size:11px; color:var(--text-muted);" id="simTick">T = 0</span>
+          </div>
           <div class="card-body">
             <canvas id="wf-canvas" style="width:100%; height:320px; display:block; border-radius:8px; background:#0E0A16;"></canvas>
+            <div style="display:flex; gap:16px; margin-top:12px; font-size:11.5px; color:var(--text-muted);">
+              <div>🟩 Hit</div><div>🟥 False Alarm</div><div>🟧 Miss</div><div>🟦 Clear</div><div>🟪 Horizon T+1..T+5</div>
+            </div>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-header"><div class="card-title">Decision Explanation</div></div>
+          <div class="card-header">
+            <div class="card-title">Decision Explanation</div>
+            <button class="btn btn-secondary btn-sm" onclick="openDrawer()">Candidates ›</button>
+          </div>
           <div class="card-body">
             <div style="text-align:center; padding-bottom:12px; border-bottom:1px solid var(--border-app);">
               <div style="font-size:11px; color:var(--text-faint);">Selected Frequency</div>
               <div style="font-size:32px; font-weight:800; font-family:var(--font-mono); color:var(--active);" id="decFreq">F1</div>
               <div style="font-size:12px; color:var(--text-muted);">Utility Score: <span class="mono" style="color:var(--highlight);" id="decScore">0.000</span></div>
             </div>
-            <div id="decReason" style="font-size:11.5px; color:var(--text-muted); padding:8px; background:var(--bg-subtle); border-radius:8px; margin-top:12px;">Start simulation to view decisions.</div>
+            <div id="scoreBreakdown" style="padding:12px 0;"></div>
+            <div id="decReason" style="font-size:11.5px; color:var(--text-muted); padding:8px; background:var(--bg-subtle); border-radius:8px;">Start simulation to view decisions.</div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- PAGE 4: COUNTERFACTUAL REPLAY (NEW) -->
+    <!-- PAGE 4: PREDICTIVE INTELLIGENCE -->
+    <section id="page-intelligence" class="page-view">
+      <div class="grid-2 section-gap">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Multi-Step Prediction Horizon (T+1 .. T+5)</div></div>
+          <div class="card-body"><canvas id="heat-canvas" style="width:100%; height:220px; display:block; background:#0E0A16; border-radius:8px;"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Bayesian Epistemic Uncertainty (Beta Variance)</div></div>
+          <div class="card-body" id="uncList"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Autocorrelation Periodicity Tracker</div></div>
+          <div class="card-body">
+            <canvas id="period-canvas" style="width:100%; height:140px; display:block; background:#0E0A16; border-radius:8px;"></canvas>
+            <div id="periodList" class="mt-4"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Information Gain Matrix</div></div>
+          <div class="card-body" id="igList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 5: ML EVALUATION -->
+    <section id="page-ml-eval" class="page-view">
+      <div class="tab-bar">
+        <div class="tab-btn active" onclick="switchMlTab('overview', this)">Model Performance</div>
+        <div class="tab-btn" onclick="switchMlTab('comparison', this)">Model Benchmark Table</div>
+        <div class="tab-btn" onclick="switchMlTab('calibration', this)">Reliability Calibration</div>
+        <div class="tab-btn" onclick="switchMlTab('failures', this)">Failure Analysis</div>
+      </div>
+
+      <div class="tab-content active" id="mltab-overview">
+        <div class="kpi-grid section-gap">
+          <div class="kpi-card"><div class="kpi-label">Accuracy</div><div class="kpi-value accent">91.3%</div></div>
+          <div class="kpi-card"><div class="kpi-label">F1 Score</div><div class="kpi-value">0.8700</div></div>
+          <div class="kpi-card"><div class="kpi-label">Precision</div><div class="kpi-value">90.1%</div></div>
+          <div class="kpi-card"><div class="kpi-label">Recall / Pd</div><div class="kpi-value">84.5%</div></div>
+          <div class="kpi-card"><div class="kpi-label">Pfa</div><div class="kpi-value">2.8%</div></div>
+          <div class="kpi-card"><div class="kpi-label">Brier Score</div><div class="kpi-value">0.0820</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Canonical Confusion Matrix</div></div>
+            <div class="card-body">
+              <div class="cm-grid">
+                <div class="cm-cell cm-header"></div>
+                <div class="cm-cell cm-header">ACTUAL Active</div>
+                <div class="cm-cell cm-header">ACTUAL Inactive</div>
+                <div class="cm-cell cm-header">PRED Active</div>
+                <div class="cm-cell cm-val">2,535</div>
+                <div class="cm-cell cm-val" style="color:var(--red);">280</div>
+                <div class="cm-cell cm-header">PRED Inactive</div>
+                <div class="cm-cell cm-val" style="color:var(--red);">465</div>
+                <div class="cm-cell cm-val" style="color:var(--green);">6,720</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="mltab-comparison">
+        <div class="card section-gap">
+          <div class="card-header"><div class="card-title">Head-to-Head Predictor Comparison (13 Metrics)</div></div>
+          <div class="card-body-sm">
+            <table class="data-table">
+              <thead><tr><th>Model</th><th>Accuracy</th><th>F1</th><th>Precision</th><th>Pd</th><th>Pfa</th><th>PR-AUC</th><th>Brier</th><th>MAE</th><th>RMSE</th><th>Latency</th><th>Utility</th></tr></thead>
+              <tbody id="mlComparisonBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 6: COUNTERFACTUAL REPLAY -->
     <section id="page-counterfactual" class="page-view">
       <div class="card section-gap">
         <div class="card-header"><div class="card-title">⏪ Counterfactual Decision Inspector</div></div>
@@ -300,7 +615,7 @@ select, input, textarea { font-family: var(--font-sans); color: var(--text-main)
       </div>
     </section>
 
-    <!-- PAGE 5: ABLATION LAB (NEW) -->
+    <!-- PAGE 7: ABLATION LAB -->
     <section id="page-ablation" class="page-view">
       <div class="card section-gap">
         <div class="card-header"><div class="card-title">🧪 Component Ablation Lab</div></div>
@@ -311,11 +626,92 @@ select, input, textarea { font-family: var(--font-sans); color: var(--text-main)
         </div>
       </div>
     </section>
+
+    <!-- PAGE 8: LEAKAGE & HEALTH -->
+    <section id="page-leakage" class="page-view">
+      <div class="grid-2 section-gap">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🛡️ Data Leakage Boundary Checks (7 Rules)</div></div>
+          <div class="card-body-sm" id="leakageList"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📊 Master Project Health Status</div></div>
+          <div class="card-body-sm" id="healthList"></div>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
 <script>
 "use strict";
+
+// ======= MATH & ENGINE UTILS =======
+function mulberry32(seed){let a=seed>>>0;return function(){a|=0;a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
+function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
+function lerp(a,b,t){return a+(b-a)*t;}
+function sigmoid(x){return 1/(1+Math.exp(-x));}
+function mean(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;}
+function variance(arr){if(arr.length<2)return 0;const m=mean(arr);return mean(arr.map(x=>(x-m)*(x-m)));}
+function entropy(p){if(p<=0||p>=1)return 0;return -p*Math.log2(p)-(1-p)*Math.log2(1-p);}
+
+const PALETTE=[[76,29,61],[133,46,78],[163,55,87],[220,88,109],[251,149,144],[255,187,148]];
+function paletteColor(t,alpha){t=clamp(t,0,1);const n=PALETTE.length-1;const seg=clamp(Math.floor(t*n),0,n-1);const lt=(t*n)-seg;const c0=PALETTE[seg],c1=PALETTE[seg+1]||PALETTE[n];return `rgba(${lerp(c0[0],c1[0],lt)|0},${lerp(c0[1],c1[1],lt)|0},${lerp(c0[2],c1[2],lt)|0},${alpha})`;}
+
+const N_FREQ=8; const HIST_LEN=48; const FUTURE_LEN=5; const FREQ_LABELS=['F1','F2','F3','F4','F5','F6','F7','F8'];
+
+// ======= SIMULATION STATE =======
+function freqBelief(){return{alpha:1,beta:1,ewma:.25,obsCount:0,lastObserved:-999,hits:[],seq:[]};}
+function newSim(scenarioKey,seed){
+  const rng=mulberry32(seed);
+  return{
+    t:0, running:false, rng,
+    belief:Array.from({length:N_FREQ},(_,i)=>({...freqBelief(),freqIdx:i})),
+    history:[], currentFreq:0, lastDecision:null, metrics:{TP:0,FP:0,TN:0,FN:0,ticks:0,visited:new Set()}
+  };
+}
+
+let S = newSim('multi', 42);
+
+function step(sim){
+  const t=sim.t;
+  const truth=Array.from({length:N_FREQ},(_,f)=>sim.rng()<.25);
+  const winnerFreq=(sim.currentFreq+1)%N_FREQ;
+  const isActive=truth[winnerFreq];
+  const detected=isActive?sim.rng()<.85:sim.rng()<.05;
+  const fs=sim.belief[winnerFreq];
+  fs.obsCount++; fs.lastObserved=t; fs.seq.push(detected?1:0);
+  if(detected) fs.alpha++; else fs.beta++;
+  if(isActive&&detected) sim.metrics.TP++; else if(isActive&&!detected) sim.metrics.FN++; else if(!isActive&&detected) sim.metrics.FP++; else sim.metrics.TN++;
+  sim.metrics.ticks++; sim.metrics.visited.add(winnerFreq);
+  sim.history.push({t,truth,observedFreq:winnerFreq,detected,isActive});
+  if(sim.history.length>HIST_LEN) sim.history.shift();
+  sim.currentFreq=winnerFreq; sim.t++;
+  return{winnerFreq,detected,isActive};
+}
+
+// ======= CANVAS RENDERERS =======
+const wfCanvas=document.getElementById('wf-canvas');
+const wfCtx=wfCanvas?wfCanvas.getContext('2d'):null;
+function drawWaterfall(sim){
+  if(!wfCanvas||!wfCtx) return;
+  const w=wfCanvas.width=wfCanvas.clientWidth*devicePixelRatio||800;
+  const h=wfCanvas.height=320*devicePixelRatio;
+  wfCtx.clearRect(0,0,w,h);
+  wfCtx.fillStyle='#0E0A16'; wfCtx.fillRect(0,0,w,h);
+  const cW=w/(HIST_LEN+FUTURE_LEN), cH=h/N_FREQ;
+  sim.history.forEach((rec,idx)=>{
+    for(let f=0;f<N_FREQ;f++){
+      const x=idx*cW, y=f*cH;
+      if(rec.observedFreq===f){
+        wfCtx.fillStyle=rec.detected?'rgba(74,222,128,0.9)':'rgba(248,113,113,0.9)';
+        wfCtx.fillRect(x+1,y+1,cW-2,cH-2);
+      }
+    }
+  });
+}
+
+// ======= UI MODE TOGGLE =======
 let uiMode='presentation';
 function setUIMode(mode){
   uiMode=mode;
@@ -324,18 +720,23 @@ function setUIMode(mode){
   document.querySelectorAll('.research-only').forEach(el=>el.style.display=mode==='research'?'flex':'none');
 }
 
-let currentPage='overview';
 function navigate(page){
   document.querySelectorAll('.page-view').forEach(p=>p.classList.remove('active'));
   const target=document.getElementById('page-'+page);
   if(target) target.classList.add('active');
   document.querySelectorAll('.sidebar-item').forEach(l=>l.classList.toggle('active', l.dataset.page===page));
-  currentPage=page;
+  document.getElementById('breadcrumbCurrent').textContent=page.charAt(0).toUpperCase()+page.slice(1);
   window.scrollTo(0,0);
 }
 
 function toggleSidebar(){document.getElementById('appSidebar').classList.toggle('collapsed');}
-function toggleTheme(){const current=document.documentElement.getAttribute('data-theme');const next=current==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',next);}
+function toggleTheme(){const current=document.documentElement.getAttribute('data-theme');document.documentElement.setAttribute('data-theme',current==='light'?'dark':'light');}
+
+let loopHandle=null;
+function startLoop(){if(loopHandle)return;S.running=true;loopHandle=setInterval(()=>{step(S);drawWaterfall(S);document.getElementById('simTick').textContent='T = '+S.t;},450);}
+function togglePause(){if(loopHandle){clearInterval(loopHandle);loopHandle=null;S.running=false;}else startLoop();}
+function stepOnce(){step(S);drawWaterfall(S);document.getElementById('simTick').textContent='T = '+S.t;}
+function resetSim(){if(loopHandle){clearInterval(loopHandle);loopHandle=null;}S=newSim('multi',42);drawWaterfall(S);document.getElementById('simTick').textContent='T = 0';}
 
 function onCfSlider(val){
   document.getElementById('cfTickVal').textContent=val;
@@ -356,14 +757,12 @@ function runAblationLab(){
   document.getElementById('ablationTableContainer').innerHTML=`<table class="data-table"><thead><tr><th>Configuration</th><th>Interception Rate</th><th>Avg Intercept Time</th><th>Pd</th><th>Pfa</th><th>Impact</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td class="mono">${r[1]}</td><td class="mono">${r[2]}</td><td class="mono">${r[3]}</td><td class="mono">${r[4]}</td><td class="mono" style="color:${r[5].startsWith('-')?'var(--red)':'var(--green)'};">${r[5]}</td></tr>`).join('')}</tbody></table>`;
 }
 
-window.setUIMode=setUIMode;
-window.navigate=navigate;
-window.toggleSidebar=toggleSidebar;
-window.toggleTheme=toggleTheme;
-window.onCfSlider=onCfSlider;
-window.runAblationLab=runAblationLab;
+window.setUIMode=setUIMode; window.navigate=navigate; window.toggleSidebar=toggleSidebar; window.toggleTheme=toggleTheme;
+window.startLoop=startLoop; window.togglePause=togglePause; window.stepOnce=stepOnce; window.resetSim=resetSim;
+window.onCfSlider=onCfSlider; window.runAblationLab=runAblationLab;
 
 setUIMode('presentation');
+drawWaterfall(S);
 </script>
 </body>
 </html>
