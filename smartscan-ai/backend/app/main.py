@@ -27,9 +27,10 @@ app.include_router(intelligence.router, prefix="/api/intelligence", tags=["intel
 app.include_router(policies.router, prefix="/api/policies", tags=["policies"])
 app.include_router(experiments.router, prefix="/api/experiments", tags=["experiments"])
 app.include_router(benchmarks.router, prefix="/api/benchmarks", tags=["benchmarks"])
-from app.api import routes_ml_eval
+from app.api import routes_ml_eval, routes_research_labs
 
 app.include_router(routes_ml_eval.router)
+app.include_router(routes_research_labs.router)
 app.include_router(ws_router)
 
 @app.on_event("startup")
