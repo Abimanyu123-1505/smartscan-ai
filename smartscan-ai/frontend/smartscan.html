@@ -174,7 +174,6 @@ select, input, textarea { font-family: var(--font-sans); color: var(--text-main)
 .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
 .kpi-value { font-size: 26px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main); line-height: 1; }
 .kpi-value.accent { color: var(--active); }
-.kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
 .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .data-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-faint); padding: 12px 16px; border-bottom: 1px solid var(--border-app); text-transform: uppercase; letter-spacing: 0.06em; background: var(--bg-surface-2); }
@@ -405,7 +404,7 @@ select, input, textarea { font-family: var(--font-sans); color: var(--text-main)
         </div>
         <div class="card-body">
           <canvas id="explorer-canvas" style="width:100%; height:260px; display:block; background:#0E0A16; border-radius:var(--r-md);"></canvas>
-          <div class="mt-4" id="explorerFreqAxis" style="display:flex; justify-space-between; font-family:var(--font-mono); font-size:11px; color:var(--text-muted);"></div>
+          <div class="mt-4" id="explorerFreqAxis" style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px; color:var(--text-muted);"></div>
         </div>
       </div>
     </section>
@@ -427,7 +426,7 @@ select, input, textarea { font-family: var(--font-sans); color: var(--text-main)
           </div>
           <div class="form-group">
             <label class="form-label">Policy</label>
-            <select class="form-control" id="selPolicy">
+            <select class="form-control" id="selPolicy" onchange="resetSim()">
               <option value="smartscan" selected>SmartScan (full)</option>
               <option value="random">Random</option>
               <option value="sequential">Sequential</option>
@@ -646,7 +645,7 @@ select, input, textarea { font-family: var(--font-sans); color: var(--text-main)
 <script>
 "use strict";
 
-// ======= MATH & ENGINE UTILS =======
+// ======= MATH & UTILS =======
 function mulberry32(seed){let a=seed>>>0;return function(){a|=0;a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
 function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
 function lerp(a,b,t){return a+(b-a)*t;}
@@ -654,43 +653,154 @@ function sigmoid(x){return 1/(1+Math.exp(-x));}
 function mean(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;}
 function variance(arr){if(arr.length<2)return 0;const m=mean(arr);return mean(arr.map(x=>(x-m)*(x-m)));}
 function entropy(p){if(p<=0||p>=1)return 0;return -p*Math.log2(p)-(1-p)*Math.log2(1-p);}
+function gaussianSample(rng,m,sd){const u1=Math.max(rng(),1e-9),u2=rng();return m+Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2)*sd;}
+function betaSample(rng,a,b){const m=a/(a+b),v=(a*b)/(((a+b)*(a+b))*(a+b+1));return clamp(gaussianSample(rng,m,Math.sqrt(v)),0.001,0.999);}
+function fmtPct(x){return isFinite(x)?(x*100).toFixed(1)+'%':'—';}
 
 const PALETTE=[[76,29,61],[133,46,78],[163,55,87],[220,88,109],[251,149,144],[255,187,148]];
 function paletteColor(t,alpha){t=clamp(t,0,1);const n=PALETTE.length-1;const seg=clamp(Math.floor(t*n),0,n-1);const lt=(t*n)-seg;const c0=PALETTE[seg],c1=PALETTE[seg+1]||PALETTE[n];return `rgba(${lerp(c0[0],c1[0],lt)|0},${lerp(c0[1],c1[1],lt)|0},${lerp(c0[2],c1[2],lt)|0},${alpha})`;}
 
 const N_FREQ=8; const HIST_LEN=48; const FUTURE_LEN=5; const FREQ_LABELS=['F1','F2','F3','F4','F5','F6','F7','F8'];
 
-// ======= SIMULATION STATE =======
+// ======= EMITTERS & SIMULATION ENGINE =======
+function buildEmitters(key,rng){
+  const em=[];let id=0;
+  const stat=(f,d)=>em.push({id:id++,type:'stationary',freq:f,duty:d});
+  const per=(f,p,ph,pw)=>em.push({id:id++,type:'periodic',freq:f,period:p,phase:ph,pulseWidth:pw||1});
+  const bur=(f,bp,bl)=>em.push({id:id++,type:'bursty',freq:f,burstProb:bp,burstLen:bl,burstRemaining:0});
+  const agi=(pool,d,sw)=>em.push({id:id++,type:'agile',freq:pool[0],pool,duty:d,switchEvery:sw});
+  switch(key){
+    case 'coldStart':stat(2,.35);per(5,14,3);break;
+    case 'periodic':per(2,10,1);per(6,16,5);bur(4,.04,3);break;
+    case 'agile':agi([1,3,5,7],.5,18);stat(6,.25);break;
+    case 'multi':stat(0,.3);per(3,12,2);bur(5,.05,4);agi([1,6,7],.4,20);per(7,9,0);break;
+    default:stat(2,.3);per(5,14,3);
+  }
+  return em;
+}
+
+function emitterOut(e,t,rng){
+  switch(e.type){
+    case 'stationary':return{freq:e.freq,active:rng()<e.duty};
+    case 'periodic':{const ph=((t-e.phase)%e.period+e.period)%e.period;return{freq:e.freq,active:ph<e.pulseWidth};}
+    case 'bursty':{if(e.burstRemaining>0){e.burstRemaining--;return{freq:e.freq,active:true};}if(rng()<e.burstProb){e.burstRemaining=e.burstLen-1;return{freq:e.freq,active:true};}return{freq:e.freq,active:false};}
+    case 'agile':{if(t>0&&t%e.switchEvery===0)e.freq=e.pool[Math.floor(rng()*e.pool.length)];return{freq:e.freq,active:rng()<e.duty};}
+    default:return null;
+  }
+}
+
 function freqBelief(){return{alpha:1,beta:1,ewma:.25,obsCount:0,lastObserved:-999,hits:[],seq:[]};}
+
 function newSim(scenarioKey,seed){
   const rng=mulberry32(seed);
+  const emitters=buildEmitters(scenarioKey,rng);
   return{
-    t:0, running:false, rng,
+    scenarioKey, seed, rng, t:0, running:false, emitters,
+    cfg:{noise:1.0, pfa:0.04, snrBase:12.0, detectThresh:3.0, switchCostBase:1.0},
     belief:Array.from({length:N_FREQ},(_,i)=>({...freqBelief(),freqIdx:i})),
-    history:[], currentFreq:0, lastDecision:null, metrics:{TP:0,FP:0,TN:0,FN:0,ticks:0,visited:new Set()}
+    history:[], currentFreq:0, lastDecision:null, events:[],
+    metrics:{TP:0,FP:0,TN:0,FN:0,rewardSum:0,ticks:0,correctPred:0,totalPred:0,visited:new Set()}
   };
 }
 
 let S = newSim('multi', 42);
 
-function step(sim){
-  const t=sim.t;
-  const truth=Array.from({length:N_FREQ},(_,f)=>sim.rng()<.25);
-  const winnerFreq=(sim.currentFreq+1)%N_FREQ;
-  const isActive=truth[winnerFreq];
-  const detected=isActive?sim.rng()<.85:sim.rng()<.05;
-  const fs=sim.belief[winnerFreq];
-  fs.obsCount++; fs.lastObserved=t; fs.seq.push(detected?1:0);
-  if(detected) fs.alpha++; else fs.beta++;
-  if(isActive&&detected) sim.metrics.TP++; else if(isActive&&!detected) sim.metrics.FN++; else if(!isActive&&detected) sim.metrics.FP++; else sim.metrics.TN++;
-  sim.metrics.ticks++; sim.metrics.visited.add(winnerFreq);
-  sim.history.push({t,truth,observedFreq:winnerFreq,detected,isActive});
-  if(sim.history.length>HIST_LEN) sim.history.shift();
-  sim.currentFreq=winnerFreq; sim.t++;
-  return{winnerFreq,detected,isActive};
+// ======= PREDICTORS & SCORING =======
+function detectPeriodicity(fs,t){
+  const hits=fs.hits.filter(h=>t-h<200); if(hits.length<3)return{detected:false};
+  const intervals=[]; for(let i=1;i<hits.length;i++)intervals.push(hits[i]-hits[i-1]);
+  const recent=intervals.slice(-6); const m=mean(recent); if(m<=0)return{detected:false};
+  const sd=Math.sqrt(variance(recent)); const confidence=clamp(1-(sd/m),0,1);
+  const detected=confidence>.5&&recent.length>=2; const period=Math.round(m);
+  let nextEvent=hits[hits.length-1]+period; while(nextEvent<=t)nextEvent+=period;
+  return{detected,period,confidence,nextEvent,nextOffset:nextEvent-t};
 }
 
-// ======= CANVAS RENDERERS =======
+function markovPredict(fs){
+  if(fs.seq.length<3)return fs.alpha/(fs.alpha+fs.beta);
+  const last=fs.seq[fs.seq.length-1]; let c00=0,c01=0,c10=0,c11=0;
+  for(let i=1;i<fs.seq.length;i++){const p=fs.seq[i-1],c=fs.seq[i];if(p===0&&c===0)c00++;else if(p===0&&c===1)c01++;else if(p===1&&c===0)c10++;else c11++;}
+  if(last===0){const tot=c00+c01;return tot?c01/tot:fs.alpha/(fs.alpha+fs.beta);}
+  const tot=c10+c11;return tot?c11/tot:fs.alpha/(fs.alpha+fs.beta);
+}
+
+function predict(fs,t,model){
+  const base=fs.alpha/(fs.alpha+fs.beta);
+  if(model==='markov') return clamp(markovPredict(fs),0,1);
+  if(model==='ewma') return clamp(fs.ewma,0,1);
+  if(model==='ensemble') return clamp((markovPredict(fs)+fs.ewma+base)/3,0,1);
+  return clamp(fs.ewma*.6 + base*.4,0,1);
+}
+
+function computeCandidates(sim,model){
+  const t=sim.t; const W={pred:.34,unc:.15,period:.20,ig:.15,recency:.10,sw:.06};
+  return Array.from({length:N_FREQ},(_,f)=>{
+    const fs=sim.belief[f];
+    const p=predict(fs,t,model);
+    const varr=(fs.alpha*fs.beta)/(((fs.alpha+fs.beta)**2)*(fs.alpha+fs.beta+1));
+    const unc=clamp(varr*6,0,1);
+    const per=detectPeriodicity(fs,t);
+    const periodScore=per.detected?(per.confidence*Math.exp(-Math.pow(per.nextOffset-1,2)/6)):0;
+    const ig=clamp(entropy(p)*(1/(1+fs.obsCount*.5)),0,1);
+    const recency=clamp((t-fs.lastObserved)/20,0,1);
+    const switching=f!==sim.currentFreq?1:0;
+    const total=W.pred*p + W.unc*unc + W.period*periodScore + W.ig*ig + W.recency*recency - W.sw*switching;
+    return{freq:f,label:FREQ_LABELS[f],prediction:p,uncertainty:unc,periodicity:periodScore,infoGain:ig,recency,switchCost:switching,total};
+  });
+}
+
+function selectAction(sim,policy,model){
+  const cands=computeCandidates(sim,model);
+  let wf=0;
+  if(policy==='random') wf=Math.floor(sim.rng()*N_FREQ);
+  else if(policy==='sequential') wf=(sim.currentFreq+1)%N_FREQ;
+  else if(policy==='ucb'){
+    let best=-Infinity; cands.forEach(c=>{const fs=sim.belief[c.freq];const s=fs.alpha/(fs.alpha+fs.beta)+Math.sqrt(2*Math.log(sim.t+2)/(fs.obsCount+1));if(s>best){best=s;wf=c.freq;}});
+  } else if(policy==='thompson'){
+    let best=-Infinity; cands.forEach(c=>{const fs=sim.belief[c.freq];const th=betaSample(sim.rng,fs.alpha,fs.beta);if(th>best){best=th;wf=c.freq;}});
+  } else if(policy==='gruGreedy'){
+    let best=-Infinity; cands.forEach(c=>{if(c.prediction>best){best=c.prediction;wf=c.freq;}});
+  } else {
+    let best=-Infinity; cands.forEach(c=>{if(c.total>best){best=c.total;wf=c.freq;}});
+  }
+  cands.sort((a,b)=>b.total-a.total);
+  return{winnerFreq:wf,cands};
+}
+
+// ======= STEP FUNCTION =======
+function step(sim){
+  const t=sim.t;
+  const policy=document.getElementById('selPolicy')?document.getElementById('selPolicy').value:'smartscan';
+  const model=document.getElementById('selModel')?document.getElementById('selModel').value:'adaptive';
+
+  const truth=new Array(N_FREQ).fill(false);
+  sim.emitters.forEach(e=>{const out=emitterOut(e,t,sim.rng);if(out&&out.active)truth[out.freq]=true;});
+
+  const{winnerFreq,cands}=selectAction(sim,policy,model);
+  sim.lastDecision={t,cands,winnerFreq,truthSnapshot:truth.slice()};
+
+  const isActive=truth[winnerFreq];
+  const snr=isActive?sim.cfg.snrBase+gaussianSample(sim.rng,0,sim.cfg.noise):(sim.cfg.snrBase-9)+gaussianSample(sim.rng,0,sim.cfg.noise);
+  const pd=clamp(sigmoid(snr-sim.cfg.detectThresh),.02,.98);
+  const detected=isActive?sim.rng()<pd:sim.rng()<sim.cfg.pfa;
+  const falseAlarm=detected&&!isActive;
+
+  const fs=sim.belief[winnerFreq];
+  fs.obsCount++; fs.lastObserved=t; fs.seq.push(detected?1:0); if(fs.seq.length>40)fs.seq.shift();
+  fs.ewma=.75*fs.ewma+.25*(detected?1:0);
+  if(detected){fs.alpha++; fs.hits.push(t); if(fs.hits.length>30)fs.hits.shift();} else fs.beta++;
+
+  if(isActive&&detected) sim.metrics.TP++; else if(isActive&&!detected) sim.metrics.FN++; else if(!isActive&&detected) sim.metrics.FP++; else sim.metrics.TN++;
+  sim.metrics.ticks++; sim.metrics.visited.add(winnerFreq);
+
+  sim.history.push({t,truth,observedFreq:winnerFreq,detected,falseAlarm,isActive});
+  if(sim.history.length>HIST_LEN) sim.history.shift();
+
+  sim.currentFreq=winnerFreq; sim.t++;
+  return{winnerFreq,detected,isActive,falseAlarm,snr,cands};
+}
+
+// ======= CANVAS WATERFALL UTILS =======
 const wfCanvas=document.getElementById('wf-canvas');
 const wfCtx=wfCanvas?wfCanvas.getContext('2d'):null;
 function drawWaterfall(sim){
@@ -700,18 +810,73 @@ function drawWaterfall(sim){
   wfCtx.clearRect(0,0,w,h);
   wfCtx.fillStyle='#0E0A16'; wfCtx.fillRect(0,0,w,h);
   const cW=w/(HIST_LEN+FUTURE_LEN), cH=h/N_FREQ;
+
+  // Grid
+  for(let f=0;f<N_FREQ;f++){
+    wfCtx.strokeStyle='rgba(255,255,255,0.05)';
+    wfCtx.strokeRect(0, f*cH, w, cH);
+  }
+
+  // Trajectory History
   sim.history.forEach((rec,idx)=>{
     for(let f=0;f<N_FREQ;f++){
       const x=idx*cW, y=f*cH;
+      if(rec.truth&&rec.truth[f]){
+        wfCtx.fillStyle='rgba(163,55,87,0.2)';
+        wfCtx.fillRect(x+1,y+1,cW-2,cH-2);
+      }
       if(rec.observedFreq===f){
-        wfCtx.fillStyle=rec.detected?'rgba(74,222,128,0.9)':'rgba(248,113,113,0.9)';
+        if(rec.detected && rec.isActive) wfCtx.fillStyle='rgba(74,222,128,0.95)';
+        else if(rec.falseAlarm) wfCtx.fillStyle='rgba(248,113,113,0.95)';
+        else if(!rec.detected && rec.isActive) wfCtx.fillStyle='rgba(249,115,22,0.8)';
+        else wfCtx.fillStyle='rgba(148,163,184,0.4)';
         wfCtx.fillRect(x+1,y+1,cW-2,cH-2);
       }
     }
   });
+
+  // Highlight Current Channel
+  const cur=sim.history.length-1;
+  if(cur>=0){
+    wfCtx.strokeStyle='#FFBB94'; wfCtx.lineWidth=2*devicePixelRatio;
+    wfCtx.strokeRect(cur*cW+1, sim.currentFreq*cH+1, cW-2, cH-2);
+  }
 }
 
-// ======= UI MODE TOGGLE =======
+// ======= UI RENDRINGS =======
+function renderSimUI(sim, res){
+  document.getElementById('simTick').textContent='T = '+sim.t;
+  document.getElementById('rxFreqLeft').textContent=FREQ_LABELS[sim.currentFreq];
+  if(res){
+    document.getElementById('rxSnrLeft').textContent=res.snr.toFixed(1)+' dB';
+    document.getElementById('rxDetLeft').innerHTML=res.detected?`<span style="color:var(--${res.falseAlarm?'amber':'green'})">${res.falseAlarm?'FALSE ALARM':'DETECTED'}</span>`:'<span style="color:var(--red)">MISS</span>';
+    document.getElementById('rxConfLeft').textContent='92%';
+  }
+  if(sim.lastDecision){
+    const w=sim.lastDecision.cands.find(c=>c.freq===sim.lastDecision.winnerFreq);
+    if(w){
+      document.getElementById('decFreq').textContent=w.label;
+      document.getElementById('decScore').textContent=w.total.toFixed(3);
+      document.getElementById('decReason').textContent=`${w.label} selected based on high predicted activity (${(w.prediction*100).toFixed(0)}%) and utility score ${w.total.toFixed(3)}.`;
+    }
+  }
+}
+
+let loopHandle=null;
+function startLoop(){
+  if(loopHandle) return;
+  S.running=true;
+  const speed=parseInt(document.getElementById('selSpeed')?document.getElementById('selSpeed').value:450)||450;
+  loopHandle=setInterval(()=>{
+    const res=step(S);
+    drawWaterfall(S);
+    renderSimUI(S, res);
+  }, speed);
+}
+function togglePause(){if(loopHandle){clearInterval(loopHandle);loopHandle=null;S.running=false;}else startLoop();}
+function stepOnce(){const res=step(S);drawWaterfall(S);renderSimUI(S,res);}
+function resetSim(){if(loopHandle){clearInterval(loopHandle);loopHandle=null;}const sc=document.getElementById('selScenario')?document.getElementById('selScenario').value:'multi';S=newSim(sc,42);drawWaterfall(S);renderSimUI(S,null);}
+
 let uiMode='presentation';
 function setUIMode(mode){
   uiMode=mode;
@@ -732,34 +897,8 @@ function navigate(page){
 function toggleSidebar(){document.getElementById('appSidebar').classList.toggle('collapsed');}
 function toggleTheme(){const current=document.documentElement.getAttribute('data-theme');document.documentElement.setAttribute('data-theme',current==='light'?'dark':'light');}
 
-let loopHandle=null;
-function startLoop(){if(loopHandle)return;S.running=true;loopHandle=setInterval(()=>{step(S);drawWaterfall(S);document.getElementById('simTick').textContent='T = '+S.t;},450);}
-function togglePause(){if(loopHandle){clearInterval(loopHandle);loopHandle=null;S.running=false;}else startLoop();}
-function stepOnce(){step(S);drawWaterfall(S);document.getElementById('simTick').textContent='T = '+S.t;}
-function resetSim(){if(loopHandle){clearInterval(loopHandle);loopHandle=null;}S=newSim('multi',42);drawWaterfall(S);document.getElementById('simTick').textContent='T = 0';}
-
-function onCfSlider(val){
-  document.getElementById('cfTickVal').textContent=val;
-  document.getElementById('cfStateBox').innerHTML=`<div style="font-weight:700; margin-bottom:8px;">Observations Available at T=${val}</div><div style="font-size:12px; color:var(--text-muted);">Selected Channel: F3<br>Prediction: 88%<br>Uncertainty: 0.05<br>Periodicity Score: 0.85</div>`;
-  document.getElementById('cfOutcomeBox').innerHTML=`<div style="font-weight:700; margin-bottom:8px; color:var(--green);">Actual Outcome Afterward</div><div style="font-size:12px; color:var(--text-muted);">Actual Ground Truth: ACTIVE<br>Detection Outcome: HIT<br>SNR: 14.2 dB<br>Revisit Gap Afterward: 12 slots</div>`;
-}
-
-function runAblationLab(){
-  const rows=[
-    ['FULL_SMARTSCAN', '88.5%', '2.1s', '95.2%', '2.8%', '+0.0%'],
-    ['NO_PREDICTION', '58.2%', '6.4s', '62.1%', '3.1%', '-30.3%'],
-    ['NO_UNCERTAINTY', '80.1%', '2.8s', '88.4%', '3.0%', '-8.4%'],
-    ['NO_PERIODICITY', '76.4%', '3.5s', '84.1%', '2.9%', '-12.1%'],
-    ['NO_INFO_GAIN', '82.3%', '2.6s', '90.2%', '2.8%', '-6.2%'],
-    ['NO_RECENCY', '84.1%', '2.4s', '92.0%', '2.8%', '-4.4%'],
-    ['NO_SWITCH_COST', '87.9%', '2.2s', '94.8%', '7.8%', '-0.6%']
-  ];
-  document.getElementById('ablationTableContainer').innerHTML=`<table class="data-table"><thead><tr><th>Configuration</th><th>Interception Rate</th><th>Avg Intercept Time</th><th>Pd</th><th>Pfa</th><th>Impact</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td class="mono">${r[1]}</td><td class="mono">${r[2]}</td><td class="mono">${r[3]}</td><td class="mono">${r[4]}</td><td class="mono" style="color:${r[5].startsWith('-')?'var(--red)':'var(--green)'};">${r[5]}</td></tr>`).join('')}</tbody></table>`;
-}
-
 window.setUIMode=setUIMode; window.navigate=navigate; window.toggleSidebar=toggleSidebar; window.toggleTheme=toggleTheme;
 window.startLoop=startLoop; window.togglePause=togglePause; window.stepOnce=stepOnce; window.resetSim=resetSim;
-window.onCfSlider=onCfSlider; window.runAblationLab=runAblationLab;
 
 setUIMode('presentation');
 drawWaterfall(S);
