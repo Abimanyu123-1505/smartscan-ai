@@ -1,0 +1,42 @@
+{
+  "name": "dfiop-frontend",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
+    "@tanstack/react-query": "^5.51.1",
+    "@xyflow/react": "^12.3.6",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "d3": "^7.9.0",
+    "echarts": "^5.5.1",
+    "echarts-for-react": "^3.0.2",
+    "framer-motion": "^11.3.8",
+    "lucide-react": "^0.414.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.24.1",
+    "tailwind-merge": "^2.4.0",
+    "zustand": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/node": "^26.1.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.5.4",
+    "postcss": "^8.5.25",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.4",
+    "vite-tsconfig-paths": "^6.1.1"
+  }
+}

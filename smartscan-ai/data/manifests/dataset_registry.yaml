@@ -1,0 +1,16 @@
+datasets:
+  aerpaw:
+    name: "AERPAW Data"
+    description: "Drone communications"
+  zenodo_ism_coexistence:
+    name: "Zenodo ISM Coexistence"
+    description: "WiFi and BLE"
+  ieee_rfml_2016:
+    name: "IEEE RFML 2016"
+    description: "Modulation recognition"
+  deepsig_radioml_2018:
+    name: "DeepSig RadioML 2018"
+    description: "Over the air modulation"
+  demo:
+    name: "DEMO preprocessed sample"
+    description: "Preprocessed demo data"

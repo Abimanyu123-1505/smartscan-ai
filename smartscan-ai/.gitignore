@@ -1,0 +1,9 @@
+data/raw/
+data/processed/
+data/cache/
+__pycache__
+.env
+node_modules/
+dist/
+*.pyc
+*.log

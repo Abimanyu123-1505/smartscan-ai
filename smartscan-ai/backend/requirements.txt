@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+websockets
+numpy
+scipy
+pandas
+pyarrow
+matplotlib
+pyyaml
+json5
+pydantic
+python-multipart
+aiofiles
+httpx
+pytest

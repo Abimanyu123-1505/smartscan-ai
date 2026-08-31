@@ -1,0 +1,4 @@
+STATUS_OK = "OK"
+STATUS_ERROR = "ERROR"
+CHANNELS_DEFAULT = 16
+F_LABELS = [f"F{i}" for i in range(1, 101)]

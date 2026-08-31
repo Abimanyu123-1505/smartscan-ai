@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartScan AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .page { display: none; }
+        .page.active { display: block; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 h-screen flex overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col">
+        <div class="p-4 text-2xl font-bold border-b border-slate-700 flex items-center gap-2">
+            <i data-lucide="scan-line"></i> SmartScan AI
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="#overview" class="nav-link block p-2 rounded hover:bg-slate-800 flex items-center gap-2"><i data-lucide="layout-dashboard"></i> Overview</a>
+            <a href="#data" class="nav-link block p-2 rounded hover:bg-slate-800 flex items-center gap-2"><i data-lucide="database"></i> Data</a>
+            <a href="#simulation" class="nav-link block p-2 rounded hover:bg-slate-800 flex items-center gap-2"><i data-lucide="play-circle"></i> Simulation</a>
+            <a href="#intelligence" class="nav-link block p-2 rounded hover:bg-slate-800 flex items-center gap-2"><i data-lucide="brain"></i> Intelligence</a>
+            <a href="#research" class="nav-link block p-2 rounded hover:bg-slate-800 flex items-center gap-2"><i data-lucide="book-open"></i> Research</a>
+            <a href="#benchmarks" class="nav-link block p-2 rounded hover:bg-slate-800 flex items-center gap-2"><i data-lucide="bar-chart-2"></i> Benchmarks</a>
+            <a href="#documentation" class="nav-link block p-2 rounded hover:bg-slate-800 flex items-center gap-2"><i data-lucide="file-text"></i> Documentation</a>
+        </nav>
+        <div class="p-4 border-t border-slate-700">
+            <div id="status" class="flex items-center gap-2 text-sm text-slate-400">
+                <div class="w-2 h-2 rounded-full bg-yellow-500" id="status-indicator"></div>
+                <span id="status-text">Offline DEMO</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto bg-slate-100 p-8 relative">
+        <div id="overview" class="page active">
+            <h1 class="text-3xl font-bold mb-4">Overview</h1>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-6 rounded shadow-sm border border-slate-200">
+                    <h2 class="text-xl font-semibold mb-2">Total Scans</h2>
+                    <p class="text-4xl font-light">1,234</p>
+                </div>
+            </div>
+        </div>
+        <div id="data" class="page">
+            <h1 class="text-3xl font-bold mb-4">Data Management</h1>
+            <div class="bg-white p-6 rounded shadow-sm border border-slate-200 h-64 flex items-center justify-center text-slate-400">
+                Empty state: No data sources configured.
+            </div>
+        </div>
+        <div id="simulation" class="page">
+            <h1 class="text-3xl font-bold mb-4">Simulation Engine</h1>
+        </div>
+        <div id="intelligence" class="page">
+            <h1 class="text-3xl font-bold mb-4">Intelligence & Analytics</h1>
+        </div>
+        <div id="research" class="page">
+            <h1 class="text-3xl font-bold mb-4">Research Workspace</h1>
+        </div>
+        <div id="benchmarks" class="page">
+            <h1 class="text-3xl font-bold mb-4">Benchmarks</h1>
+        </div>
+        <div id="documentation" class="page">
+            <h1 class="text-3xl font-bold mb-4">Documentation</h1>
+        </div>
+        
+        <div id="error" class="page hidden flex-col items-center justify-center h-full text-center">
+            <i data-lucide="alert-triangle" class="w-16 h-16 text-red-500 mb-4"></i>
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">System Error</h1>
+            <p class="text-slate-600">Failed to connect to backend services.</p>
+        </div>
+
+        <div id="404" class="page hidden flex-col items-center justify-center h-full text-center">
+            <i data-lucide="file-question" class="w-16 h-16 text-slate-400 mb-4"></i>
+            <h1 class="text-3xl font-bold text-slate-800 mb-2">Page Not Found</h1>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        const pages = document.querySelectorAll('.page');
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        function navigate() {
+            let hash = window.location.hash || '#overview';
+            const targetPage = document.querySelector(hash) || document.getElementById('404');
+            
+            pages.forEach(p => p.classList.remove('active'));
+            if(targetPage) {
+                targetPage.classList.add('active');
+            } else {
+                document.getElementById('404').classList.add('active');
+            }
+            
+            navLinks.forEach(link => {
+                if(link.getAttribute('href') === hash) {
+                    link.classList.add('bg-slate-800', 'text-white');
+                } else {
+                    link.classList.remove('bg-slate-800', 'text-white');
+                }
+            });
+        }
+        
+        window.addEventListener('hashchange', navigate);
+        navigate();
+
+        // WebSocket Integration
+        let ws;
+        function connectWS() {
+            ws = new WebSocket('ws://localhost:8001/ws');
+            ws.onopen = () => {
+                document.getElementById('status-indicator').className = 'w-2 h-2 rounded-full bg-green-500';
+                document.getElementById('status-text').textContent = 'Live Connected';
+            };
+            ws.onclose = () => {
+                document.getElementById('status-indicator').className = 'w-2 h-2 rounded-full bg-yellow-500';
+                document.getElementById('status-text').textContent = 'Offline DEMO';
+                setTimeout(connectWS, 5000);
+            };
+            ws.onerror = () => {
+                // Ignore error, handle in onclose
+            };
+        }
+        connectWS();
+    </script>
+</body>
+</html>

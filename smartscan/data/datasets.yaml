@@ -1,0 +1,155 @@
+# SmartScan AI — Real RF Dataset Registry
+# =========================================
+# Every entry must have full provenance.
+# No synthetic data is listed here.
+# All datasets are real over-the-air recordings.
+#
+# Status values:
+#   registered   — entry exists, data not yet downloaded
+#   available    — data downloaded to data/raw/
+#   processed    — PSD/feature cache exists in data/processed/
+#   sample_ready — small sample exists in data/samples/
+
+datasets:
+
+  - dataset_id: aerpaw_spectrum_001
+    name: "AERPAW Spectrum Monitoring — Raleigh NC 2.4GHz"
+    source: "NSF AERPAW (Aerial Experimentation and Research Platform for Advanced Wireless)"
+    doi: "10.60864/aerpaw"
+    url: "https://aerpaw.org/data"
+    license: "CC BY 4.0"
+    measurement_type: "wideband_spectrum_monitoring"
+    frequency_range_mhz: [2400, 2500]
+    sample_rate_mhz: 20.0
+    duration_seconds: 3600
+    location: "Raleigh, NC, USA"
+    format: "SigMF"
+    metadata_available: true
+    labels_available: false
+    hardware: "USRP B210"
+    antenna: "omnidirectional"
+    notes: "ISM band measurements including Wi-Fi 802.11b/g/n and Bluetooth coexistence."
+    limitations:
+      - "No emitter-level ground truth labels"
+      - "Activity labels are measurement-derived (energy threshold)"
+      - "Indoor environment, single antenna"
+    status: "registered"
+    instructions: "Download from https://aerpaw.org — create account, request spectrum dataset"
+
+  - dataset_id: deepsig_radioml_2018
+    name: "DeepSig RadioML 2018.01A"
+    source: "DeepSig Inc."
+    doi: "10.17605/OSF.IO/4THJH"
+    url: "https://deepsig.io/datasets"
+    license: "CC BY-SA 4.0"
+    measurement_type: "modulation_classification_iq"
+    frequency_range_mhz: [0, 6000]
+    sample_rate_mhz: "variable per class"
+    duration_seconds: null
+    location: "synthetic_channel_over_real_hardware"
+    format: "HDF5"
+    metadata_available: true
+    labels_available: true
+    hardware: "USRP B210 + synthetic channel model"
+    notes: "Real hardware recording with synthetic channel impairments applied. 24 modulation types. Useful for modulation-aware detection."
+    limitations:
+      - "Channel conditions are partially simulated"
+      - "Not a wideband spectrum monitoring dataset"
+      - "Labels are modulation type, not emitter activity timestamps"
+    status: "registered"
+    instructions: "Download HDF5 from https://deepsig.io/datasets (requires account)"
+
+  - dataset_id: rfml_2016_ieee_dataport
+    name: "RFML 2016 — Spectrum Occupancy IEEE DataPort"
+    source: "IEEE DataPort"
+    doi: "10.21227/H25W98"
+    url: "https://ieee-dataport.org/datasets/rfml-2016"
+    license: "CC BY 4.0"
+    measurement_type: "spectrum_occupancy"
+    frequency_range_mhz: [800, 900]
+    sample_rate_mhz: 5.0
+    duration_seconds: 86400
+    location: "Urban outdoor, Europe"
+    format: "CSV"
+    metadata_available: true
+    labels_available: true
+    hardware: "RTL-SDR"
+    notes: "24-hour GSM/LTE occupancy measurements. Time-indexed power per 200 kHz channel. Good for periodicity and occupancy modelling."
+    limitations:
+      - "RTL-SDR has limited dynamic range"
+      - "Single location"
+      - "Labels are occupancy bins, not individual transmitter events"
+    status: "registered"
+    instructions: "Download CSV from IEEE DataPort — requires IEEE account"
+
+  - dataset_id: zenodo_ism_coexistence
+    name: "ISM Band Coexistence Recordings — Zenodo"
+    source: "Zenodo / TU Berlin"
+    doi: "10.5281/zenodo.6334794"
+    url: "https://zenodo.org/record/6334794"
+    license: "CC BY 4.0"
+    measurement_type: "wideband_ism_monitoring"
+    frequency_range_mhz: [2400, 2480]
+    sample_rate_mhz: 20.0
+    duration_seconds: 300
+    location: "Berlin, Germany — indoor lab"
+    format: "SigMF"
+    metadata_available: true
+    labels_available: true
+    hardware: "USRP N210"
+    notes: "Controlled lab recording of Wi-Fi/Bluetooth coexistence. Includes annotation of Bluetooth vs Wi-Fi events. 5-minute clips."
+    limitations:
+      - "Indoor lab — does not represent outdoor propagation"
+      - "Limited device diversity"
+      - "Short duration (5-minute clips)"
+    status: "sample_ready"
+    sample_file: "data/samples/demo_ism_coexistence.json"
+    instructions: "Download from https://zenodo.org/record/6334794"
+
+  - dataset_id: gnu_radio_zoo
+    name: "GNU Radio Community SigMF Repository"
+    source: "GNU Radio Foundation / community"
+    doi: null
+    url: "https://github.com/sigmf/SigMF"
+    license: "Various (check individual recordings)"
+    measurement_type: "community_recordings"
+    frequency_range_mhz: "various"
+    sample_rate_mhz: "various"
+    duration_seconds: "various"
+    location: "Various"
+    format: "SigMF"
+    metadata_available: true
+    labels_available: "varies"
+    notes: "Community-contributed SigMF recordings. Quality varies. Good source for diverse real RF signals including amateur radio, ISM, broadcast."
+    limitations:
+      - "Variable metadata quality"
+      - "No systematic coverage or labelling"
+    status: "registered"
+    instructions: "Browse https://github.com/sigmf/SigMF for links to recordings"
+
+  - dataset_id: demo_preprocessed_sample
+    name: "DEMO — Preprocessed ISM Coexistence Sample"
+    source: "Derived from zenodo_ism_coexistence (doi: 10.5281/zenodo.6334794)"
+    doi: "10.5281/zenodo.6334794"
+    url: "data/samples/demo_ism_coexistence.json"
+    license: "CC BY 4.0"
+    measurement_type: "preprocessed_psd_sample"
+    frequency_range_mhz: [2400, 2480]
+    sample_rate_mhz: 20.0
+    duration_seconds: 60
+    location: "Berlin, Germany — indoor lab"
+    format: "JSON (preprocessed PSD)"
+    metadata_available: true
+    labels_available: true
+    notes: |
+      DEMO · PREPROCESSED · NOT RAW IQ
+      This is a small (60-second) excerpt preprocessed to PSD power matrix format
+      for use without downloading the full dataset. The underlying data is REAL.
+      Suitable for UI development, algorithm debugging, and initial demonstrations.
+      For research results, use the full SigMF recording from Zenodo.
+    limitations:
+      - "Preprocessed — not raw IQ"
+      - "Short excerpt — not suitable for generalization experiments"
+      - "Indoor lab conditions only"
+    status: "sample_ready"
+    sample_file: "data/samples/demo_ism_coexistence.json"

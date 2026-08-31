@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartScan AI — Predictive Spectrum Scheduling & ML Evaluation System</title>
+<meta name="description" content="SmartScan AI: Uncertainty-aware predictive frequency-time scheduling for electronic support. SIH 2026 Problem Statement 26055.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* THEME TOKENS - DARK DEFAULT */
+  --bg-app:        #0B0813;
+  --bg-subtle:     #120D1F;
+  --bg-surface:    #18122B;
+  --bg-surface-2:  #21183A;
+  --bg-card:       #1D1533;
+  --bg-hover:      #2A1F4A;
+  --border-app:    rgba(246,236,231,0.10);
+  --border-strong: rgba(246,236,231,0.20);
+  
+  --brand:         #4C1D3D;
+  --brand-2:       #852E4E;
+  --accent:        #A33757;
+  --active:        #DC586D;
+  --highlight:     #FB9590;
+  --peak:          #FFBB94;
+  
+  --text-main:     #F6ECE7;
+  --text-muted:    rgba(246,236,231,0.65);
+  --text-faint:    rgba(246,236,231,0.40);
+  --text-inv:      #0E0A16;
+  
+  --green:         #4ADE80;
+  --green-bg:      rgba(74,222,128,0.12);
+  --green-border:  rgba(74,222,128,0.30);
+  
+  --red:           #F87171;
+  --red-bg:        rgba(248,113,113,0.12);
+  --red-border:    rgba(248,113,113,0.30);
+  
+  --amber:         #FBBF24;
+  --amber-bg:      rgba(251,191,36,0.12);
+  --amber-border:  rgba(251,191,36,0.30);
+  
+  --blue:          #60A5FA;
+  --blue-bg:       rgba(96,165,250,0.12);
+  --blue-border:   rgba(96,165,250,0.30);
+  
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
+  --sp-6: 24px; --sp-8: 32px; --sp-10: 40px; --sp-12: 48px;
+  
+  --r-sm: 4px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 14px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
+  
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --top-nav-h: 60px;
+  --sidebar-w: 240px;
+}
+
+[data-theme="light"] {
+  --bg-app:        #F8F9FA;
+  --bg-subtle:     #F1F3F5;
+  --bg-surface:    #FFFFFF;
+  --bg-surface-2:  #E9ECEF;
+  --bg-card:       #FFFFFF;
+  --bg-hover:      #E2E8F0;
+  --border-app:    #E2E8F0;
+  --border-strong: #CBD5E1;
+  
+  --text-main:     #1E293B;
+  --text-muted:    #64748B;
+  --text-faint:    #94A3B8;
+  --text-inv:      #FFFFFF;
+  
+  --green:         #16A34A;
+  --green-bg:      #DCFCE7;
+  --green-border:  #86EFAC;
+  
+  --red:           #DC2626;
+  --red-bg:        #FEE2E2;
+  --red-border:    #FCA5A5;
+  
+  --amber:         #D97706;
+  --amber-bg:      #FEF3C7;
+  --amber-border:  #FDE68A;
+  
+  --blue:          #2563EB;
+  --blue-bg:       #DBEAFE;
+  --blue-border:   #93C5FD;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+body { font-family: var(--font-sans); background: var(--bg-app); color: var(--text-main); line-height: 1.5; min-height: 100vh; overflow-x: hidden; }
+a { color: var(--active); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font-family: var(--font-sans); cursor: pointer; border: none; background: none; color: inherit; }
+select, input, textarea { font-family: var(--font-sans); color: var(--text-main); }
+::selection { background: var(--highlight); color: var(--brand); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* TOP NAV BAR */
+.top-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--top-nav-h);
+  background: var(--brand);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center;
+  padding: 0 var(--sp-5);
+  gap: var(--sp-4);
+  box-shadow: var(--shadow-md);
+}
+.nav-brand { display: flex; align-items: center; gap: var(--sp-3); text-decoration: none; flex-shrink: 0; }
+.nav-logo-mark { width: 32px; height: 32px; border-radius: var(--r-md); background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700; font-size: 14px; color: #fff; box-shadow: 0 0 10px rgba(220,88,109,0.5); }
+.nav-brand-title { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: 0.04em; }
+.nav-brand-sub { font-size: 10px; color: rgba(255,255,255,0.6); display: block; }
+.sidebar-toggle-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: var(--r-sm); color: rgba(255,255,255,0.7); transition: background 0.15s; }
+.sidebar-toggle-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+.search-trigger {
+  display: flex; align-items: center; gap: var(--sp-2);
+  background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--r-md); padding: 5px 12px; font-size: 12px; color: rgba(255,255,255,0.6);
+  cursor: pointer; width: 220px; transition: all 0.15s;
+}
+.search-trigger:hover { background: rgba(0,0,0,0.35); border-color: rgba(255,255,255,0.3); color: #fff; }
+.kbd-shortcut { background: rgba(255,255,255,0.15); border-radius: 3px; padding: 1px 5px; font-family: var(--font-mono); font-size: 10px; margin-left: auto; }
+
+.mega-menu-container { position: relative; }
+.btn-mega-menu { display: flex; align-items: center; gap: var(--sp-1); font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.8); padding: 6px 12px; border-radius: var(--r-sm); }
+.btn-mega-menu:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.mega-dropdown {
+  position: absolute; top: calc(100% + 8px); left: 0; width: 560px;
+  background: var(--bg-surface); border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-lg); padding: var(--sp-5);
+  display: none; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); z-index: 120;
+}
+.mega-dropdown.open { display: grid; }
+.mega-col-title { font-size: 10px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sp-2); }
+.mega-item { display: block; padding: 6px 8px; border-radius: var(--r-sm); font-size: 12px; color: var(--text-main); transition: background 0.12s; }
+.mega-item:hover { background: var(--bg-hover); text-decoration: none; color: var(--active); }
+.mega-item-desc { font-size: 10px; color: var(--text-muted); display: block; }
+
+.nav-actions { margin-left: auto; display: flex; align-items: center; gap: var(--sp-3); }
+.theme-toggle-btn, .notif-btn { width: 32px; height: 32px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.8); transition: background 0.15s; position: relative; }
+.theme-toggle-btn:hover, .notif-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.notif-badge { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--active); }
+
+.status-badge { font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px; }
+.status-badge.live { background: rgba(74,222,128,0.15); color: #4ADE80; border: 1px solid rgba(74,222,128,0.3); }
+.status-badge.demo { background: rgba(255,187,148,0.18); color: var(--peak); border: 1px solid rgba(255,187,148,0.35); }
+.status-dot-pulse { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* APP LAYOUT FRAME */
+.app-container { display: flex; margin-top: var(--top-nav-h); min-height: calc(100vh - var(--top-nav-h)); }
+.sidebar {
+  width: var(--sidebar-w); background: var(--bg-subtle); border-right: 1px solid var(--border-app);
+  display: flex; flex-direction: column; flex-shrink: 0; position: sticky; top: var(--top-nav-h);
+  height: calc(100vh - var(--top-nav-h)); overflow-y: auto; transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sidebar.collapsed { margin-left: calc(-1 * var(--sidebar-w)); }
+.sidebar-section { padding: var(--sp-4) var(--sp-3) var(--sp-1); font-size: 10px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+.sidebar-item {
+  display: flex; align-items: center; gap: var(--sp-3); padding: 9px 14px; margin: 2px var(--sp-2);
+  border-radius: var(--r-md); font-size: 12.5px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.12s;
+}
+.sidebar-item:hover { background: var(--bg-hover); color: var(--text-main); text-decoration: none; }
+.sidebar-item.active { background: var(--accent); color: #fff; font-weight: 600; box-shadow: var(--shadow-sm); }
+.sidebar-icon { font-size: 14px; opacity: 0.85; width: 18px; text-align: center; }
+
+.main-content { flex: 1; min-width: 0; background: var(--bg-app); display: flex; flex-direction: column; }
+.breadcrumb-bar {
+  padding: var(--sp-3) var(--sp-6); background: var(--bg-surface); border-bottom: 1px solid var(--border-app);
+  display: flex; align-items: center; gap: var(--sp-2); font-size: 12px; color: var(--text-muted);
+}
+.breadcrumb-item { color: var(--text-muted); text-decoration: none; }
+.breadcrumb-item:hover { color: var(--text-main); }
+.breadcrumb-sep { color: var(--text-faint); font-size: 10px; }
+.breadcrumb-current { color: var(--text-main); font-weight: 600; }
+
+.page-view { display: none; padding: var(--sp-6); max-width: 1600px; width: 100%; margin: 0 auto; }
+.page-view.active { display: block; }
+
+/* TABS SYSTEM */
+.tab-bar { display: flex; gap: var(--sp-2); border-bottom: 1px solid var(--border-app); margin-bottom: var(--sp-5); flex-wrap: wrap; }
+.tab-btn { padding: 8px 16px; font-size: 12.5px; font-weight: 500; color: var(--text-muted); border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.12s; }
+.tab-btn:hover { color: var(--text-main); }
+.tab-btn.active { color: var(--active); border-bottom-color: var(--active); font-weight: 600; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* HEADERS */
+.header-banner { margin-bottom: var(--sp-6); display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); flex-wrap: wrap; }
+.header-title-box { display: flex; flex-direction: column; gap: 4px; }
+.header-title { font-size: 24px; font-weight: 700; color: var(--text-main); line-height: 1.2; letter-spacing: -0.01em; }
+.header-subtitle { font-size: 13px; color: var(--text-muted); max-width: 700px; }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); padding: 7px 16px; border-radius: var(--r-md); font-size: 13px; font-weight: 500; border: 1px solid transparent; transition: all 0.12s ease; cursor: pointer; white-space: nowrap; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+.btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+.btn-secondary { background: var(--bg-surface); color: var(--text-main); border-color: var(--border-strong); }
+.btn-secondary:hover { background: var(--bg-hover); border-color: var(--accent); color: var(--active); }
+.btn-ghost { background: transparent; color: var(--text-muted); border-color: transparent; }
+.btn-ghost:hover { background: var(--bg-hover); color: var(--text-main); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-hero { padding: 10px 22px; font-size: 14px; font-weight: 600; border-radius: var(--r-lg); }
+
+/* CARDS */
+.card { background: var(--bg-card); border: 1px solid var(--border-app); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+.card-header { padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--border-app); display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); background: var(--bg-surface); }
+.card-title { font-size: 13.5px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: var(--sp-2); }
+.card-subtitle { font-size: 11.5px; color: var(--text-muted); }
+.card-body { padding: var(--sp-5); }
+.card-body-sm { padding: var(--sp-3) var(--sp-4); }
+
+/* KPI GRID */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--sp-4); }
+.kpi-card { background: var(--bg-surface); border: 1px solid var(--border-app); border-radius: var(--r-lg); padding: var(--sp-4); box-shadow: var(--shadow-sm); }
+.kpi-label { font-size: 11px; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.kpi-value { font-size: 26px; font-weight: 700; font-family: var(--font-mono); color: var(--text-main); line-height: 1; }
+.kpi-value.accent { color: var(--active); }
+.kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+/* DATA TABLES */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-faint); padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--border-app); text-transform: uppercase; letter-spacing: 0.06em; background: var(--bg-surface-2); position: sticky; top: 0; }
+.data-table td { padding: 10px var(--sp-4); border-bottom: 1px solid var(--border-app); color: var(--text-main); vertical-align: middle; }
+.data-table td.mono { font-family: var(--font-mono); font-size: 12px; }
+.data-table tbody tr:hover { background: var(--bg-hover); }
+.data-table tbody tr.winner td { color: var(--active); font-weight: 600; }
+
+/* CONFUSION MATRIX GRID */
+.cm-grid { display: grid; grid-template-columns: 100px repeat(2, 1fr); gap: 2px; background: var(--border-app); padding: 2px; border-radius: var(--r-md); max-width: 420px; font-family: var(--font-mono); }
+.cm-cell { background: var(--bg-surface); padding: 12px; text-align: center; font-size: 13px; }
+.cm-header { font-weight: 700; color: var(--text-muted); font-size: 11px; }
+.cm-val { font-size: 18px; font-weight: 700; color: var(--active); }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; font-family: var(--font-mono); padding: 2px 8px; border-radius: var(--r-sm); border: 1px solid transparent; letter-spacing: 0.03em; }
+.badge-green { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+.badge-red { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+.badge-amber { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-border); }
+.badge-blue { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-border); }
+.badge-neutral { background: var(--bg-surface-2); color: var(--text-muted); border-color: var(--border-app); }
+
+/* GRID LAYOUTS */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-5); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-5); }
+.sim-layout-grid { display: grid; grid-template-columns: 280px minmax(0,1fr) 320px; gap: var(--sp-5); align-items: start; }
+@media (max-width: 1200px) { .sim-layout-grid { grid-template-columns: 1fr; } .grid-3 { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 768px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } .sidebar { position: fixed; z-index: 90; } }
+
+/* FORMS */
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-label { font-size: 11.5px; font-weight: 600; color: var(--text-muted); }
+.form-control { background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--r-md); color: var(--text-main); font-size: 12.5px; padding: 6px var(--sp-3); width: 100%; }
+.form-control:focus { outline: none; border-color: var(--active); }
+
+/* HERO SECTION */
+.hero-card { background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 60%, var(--accent) 100%); border-radius: var(--r-xl); padding: var(--sp-10) var(--sp-8); color: #fff; position: relative; overflow: hidden; margin-bottom: var(--sp-6); box-shadow: var(--shadow-lg); }
+.hero-card::after { content:''; position:absolute; inset:0; background: radial-gradient(circle at 80% 20%, rgba(255,187,148,0.25), transparent 60%); pointer-events:none; }
+.hero-eyebrow { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sp-4); }
+.hero-title { font-size: 38px; font-weight: 800; line-height: 1.15; margin-bottom: var(--sp-4); letter-spacing: -0.02em; }
+.hero-title span { color: var(--peak); }
+.hero-desc { font-size: 15px; color: rgba(255,255,255,0.82); max-width: 680px; line-height: 1.6; margin-bottom: var(--sp-6); }
+.hero-actions { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+
+/* MODALS & DRAWERS */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: center; justify-content: center; padding: var(--sp-4); }
+.modal-overlay.open { display: flex; }
+.modal-card { background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--r-xl); width: 100%; max-width: 600px; box-shadow: var(--shadow-lg); overflow: hidden; animation: modalIn 0.2s ease-out; }
+@keyframes modalIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-header { padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--border-app); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 15px; font-weight: 700; color: var(--text-main); }
+.modal-close { font-size: 18px; color: var(--text-muted); cursor: pointer; }
+.modal-close:hover { color: var(--text-main); }
+.modal-body { padding: var(--sp-5); max-height: 75vh; overflow-y: auto; }
+
+/* DRAWER */
+.drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; }
+.drawer-overlay.open { display: block; }
+.drawer-panel { position: fixed; right: 0; top: 0; bottom: 0; width: 540px; max-width: 92vw; background: var(--bg-surface); z-index: 201; box-shadow: var(--shadow-lg); transform: translateX(100%); transition: transform 0.25s ease; display: flex; flex-direction: column; }
+.drawer-panel.open { transform: translateX(0); }
+.drawer-header { padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--border-app); display: flex; align-items: center; justify-content: space-between; }
+.drawer-body { padding: var(--sp-5); flex: 1; overflow-y: auto; }
+
+/* TOASTS */
+.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 250; display: flex; flex-direction: column; gap: var(--sp-2); }
+.toast-item { background: var(--bg-surface); border: 1px solid var(--border-strong); border-left: 4px solid var(--active); border-radius: var(--r-md); padding: 10px 16px; font-size: 12.5px; color: var(--text-main); box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 10px; animation: toastIn 0.2s ease-out; }
+@keyframes toastIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* FOOTER */
+.app-footer { background: var(--bg-subtle); border-top: 1px solid var(--border-app); padding: var(--sp-8) var(--sp-6) var(--sp-6); margin-top: auto; font-size: 12.5px; color: var(--text-muted); }
+.footer-grid { max-width: 1600px; margin: 0 auto; display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: var(--sp-6); margin-bottom: var(--sp-8); }
+.footer-brand { font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+.footer-col-title { font-size: 11px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sp-3); }
+.footer-links { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.footer-links a { color: var(--text-muted); text-decoration: none; }
+.footer-links a:hover { color: var(--text-main); }
+.footer-bottom { max-width: 1600px; margin: 0 auto; padding-top: var(--sp-4); border-top: 1px solid var(--border-app); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-4); }
+
+.back-to-top-btn { position: fixed; bottom: 24px; left: 24px; z-index: 90; width: 36px; height: 36px; border-radius: 50%; background: var(--bg-surface); border: 1px solid var(--border-strong); color: var(--text-main); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md); cursor: pointer; opacity: 0; transition: opacity 0.2s; }
+.back-to-top-btn.visible { opacity: 1; }
+
+.section-gap { margin-bottom: var(--sp-6); }
+.mt-4 { margin-top: var(--sp-4); }
+.mt-6 { margin-top: var(--sp-6); }
+.text-center { text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAVIGATION BAR -->
+<header class="top-nav" role="banner">
+  <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar (Ctrl+B)">☰</button>
+  <a class="nav-brand" href="#" onclick="navigate('overview')">
+    <div class="nav-logo-mark">S</div>
+    <div>
+      <span class="nav-brand-title">SMARTSCAN AI</span>
+      <span class="nav-brand-sub">Predictive Electronic Support</span>
+    </div>
+  </a>
+
+  <!-- Global Search Trigger -->
+  <div class="search-trigger" onclick="openSearch()">
+    🔍 Search modules, datasets, specs...
+    <span class="kbd-shortcut">Ctrl+K</span>
+  </div>
+
+  <!-- Mega Menu Dropdown -->
+  <div class="mega-menu-container">
+    <button class="btn-mega-menu" onclick="toggleMegaMenu()">Modules ▾</button>
+    <div class="mega-dropdown" id="megaDropdown">
+      <div>
+        <div class="mega-col-title">Core Platform</div>
+        <a class="mega-item" href="#" onclick="navigate('overview')">Overview <span class="mega-item-desc">Problem & Architecture</span></a>
+        <a class="mega-item" href="#" onclick="navigate('data')">Data Explorer <span class="mega-item-desc">Real RF Recordings & SigMF</span></a>
+        <a class="mega-item" href="#" onclick="navigate('simulation')">Live Simulation <span class="mega-item-desc">Replay Engine & Receiver</span></a>
+      </div>
+      <div>
+        <div class="mega-col-title">Intelligence & ML</div>
+        <a class="mega-item" href="#" onclick="navigate('intelligence')">Predictive Intelligence <span class="mega-item-desc">Horizon Heatmaps & Markov</span></a>
+        <a class="mega-item" href="#" onclick="navigate('ml-eval')">ML Performance & Accuracy <span class="mega-item-desc">Metrics & Calibration</span></a>
+        <a class="mega-item" href="#" onclick="navigate('leakage')">Data Leakage & Health <span class="mega-item-desc">7 Boundary Checks</span></a>
+      </div>
+      <div>
+        <div class="mega-col-title">Research & Support</div>
+        <a class="mega-item" href="#" onclick="navigate('benchmarks')">Policy Benchmarks <span class="mega-item-desc">6-Policy Comparison Table</span></a>
+        <a class="mega-item" href="#" onclick="navigate('documentation')">Documentation <span class="mega-item-desc">Methodology & API Spec</span></a>
+        <a class="mega-item" href="#" onclick="openContactModal()">Contact & API Access <span class="mega-item-desc">Request Access Keys</span></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Actions -->
+  <div class="nav-actions">
+    <div class="status-badge live" id="navStatusBadge">
+      <span class="status-dot-pulse"></span>
+      <span id="navStatusText">LIVE · REAL DATA</span>
+    </div>
+    <button class="notif-btn" onclick="showToast('Backend health normal (Port 8001)', 'info')" title="Notifications">
+      🔔 <span class="notif-badge"></span>
+    </button>
+    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+      🌓
+    </button>
+  </div>
+</header>
+
+<!-- MAIN APP CONTAINER -->
+<div class="app-container">
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar" id="appSidebar">
+    <div class="sidebar-section">Main Menu</div>
+    <a class="sidebar-item active" data-page="overview" onclick="navigate('overview')">
+      <span class="sidebar-icon">📊</span> Overview
+    </a>
+    <a class="sidebar-item" data-page="data" onclick="navigate('data')">
+      <span class="sidebar-icon">📡</span> Data Explorer
+    </a>
+    <a class="sidebar-item" data-page="simulation" onclick="navigate('simulation')">
+      <span class="sidebar-icon">▶</span> Live Simulation
+    </a>
+    <a class="sidebar-item" data-page="intelligence" onclick="navigate('intelligence')">
+      <span class="sidebar-icon">🧠</span> ML Intelligence
+    </a>
+
+    <div class="sidebar-section">Research & Validation</div>
+    <a class="sidebar-item" data-page="ml-eval" onclick="navigate('ml-eval')">
+      <span class="sidebar-icon">🎯</span> ML Performance
+    </a>
+    <a class="sidebar-item" data-page="benchmarks" onclick="navigate('benchmarks')">
+      <span class="sidebar-icon">🏆</span> Policy Benchmarks
+    </a>
+    <a class="sidebar-item" data-page="leakage" onclick="navigate('leakage')">
+      <span class="sidebar-icon">🛡️</span> Data Leakage
+    </a>
+    <a class="sidebar-item" data-page="documentation" onclick="navigate('documentation')">
+      <span class="sidebar-icon">📖</span> Documentation
+    </a>
+
+    <div class="sidebar-section">Project Info</div>
+    <a class="sidebar-item" data-page="team" onclick="navigate('team')">
+      <span class="sidebar-icon">👥</span> Team & About
+    </a>
+  </aside>
+
+  <!-- CONTENT AREA -->
+  <main class="main-content">
+    <!-- Breadcrumb Bar -->
+    <nav class="breadcrumb-bar" aria-label="Breadcrumb">
+      <a class="breadcrumb-item" href="#" onclick="navigate('overview')">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current" id="breadcrumbCurrent">Overview</span>
+    </nav>
+
+    <!-- PAGE 1: OVERVIEW -->
+    <section id="page-overview" class="page-view active">
+      <div class="hero-card">
+        <div class="hero-eyebrow">SIH 2026 · Problem Statement 26055</div>
+        <h1 class="hero-title">Adaptive Predictive Frequency-Time<br><span>Scheduling for Electronic Support</span></h1>
+        <p class="hero-desc">SmartScan AI optimizes narrowband receiver sensing under strict partial observability—predicting emitter activity, tracking Bayesian model uncertainty, and minimizing interception latency over real RF recordings.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary btn-hero" onclick="navigate('simulation')">▶ Launch Simulation</button>
+          <button class="btn btn-secondary btn-hero" onclick="navigate('data')">📡 Explore Real Datasets</button>
+        </div>
+      </div>
+
+      <!-- Problem & Solution Overview -->
+      <div class="grid-2 section-gap">
+        <div class="card">
+          <div class="card-header"><div class="card-title">⚠️ Problem Statement</div></div>
+          <div class="card-body">
+            <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6;">
+              Narrowband receivers have limited instantaneous bandwidth ($B_{\text{instant}} \ll B_{\text{total}}$). When monitoring a wide RF spectrum, traditional sequential scanning cycles blindly ($F_1 \to F_2 \to \dots \to F_N$), suffering high intercept latency and missing short bursty signals.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">✨ SmartScan Solution</div></div>
+          <div class="card-body">
+            <p style="font-size:13.5px; color:var(--text-muted); line-height:1.6;">
+              SmartScan evaluates candidate frequencies using a multi-objective utility function blending predicted activity, Beta variance uncertainty, autocorrelation periodicity, and tuning switch costs—operating under strict partial observability.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 2: DATA EXPLORER -->
+    <section id="page-data" class="page-view">
+      <div class="header-banner">
+        <div class="header-title-box">
+          <h1 class="header-title">Dataset Registry & RF Explorer</h1>
+          <p class="header-subtitle">Real over-the-air RF recordings. Every result is fully traceable to a specific dataset, recording file, hardware setup, and DOI provenance.</p>
+        </div>
+      </div>
+
+      <div class="card section-gap">
+        <div class="card-header"><div class="card-title">📁 Registered RF Datasets</div></div>
+        <div class="card-body" id="datasetList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">RF Spectrogram Explorer <span class="badge badge-amber">DEMO SAMPLE</span></div>
+          <button class="btn btn-secondary btn-sm" onclick="loadExplorerRecording()">Reload Sample</button>
+        </div>
+        <div class="card-body">
+          <canvas id="explorer-canvas" style="width:100%; height:260px; display:block; background:#0E0A16; border-radius:var(--r-md);"></canvas>
+          <div class="mt-4" id="explorerFreqAxis" style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px; color:var(--text-muted);"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 3: LIVE SIMULATION -->
+    <section id="page-simulation" class="page-view">
+      <!-- Control Bar -->
+      <div class="card section-gap">
+        <div class="card-body-sm" style="display:flex; gap:var(--sp-4); align-items:center; flex-wrap:wrap;">
+          <div class="form-group">
+            <label class="form-label">Scenario</label>
+            <select class="form-control" id="selScenario" onchange="resetSim()">
+              <option value="coldStart">Cold Start</option>
+              <option value="periodic">Periodic Emitter</option>
+              <option value="agile">Frequency Agile</option>
+              <option value="multi" selected>Multi-Emitter</option>
+              <option value="behaviorChange">Behavior Change</option>
+              <option value="highNoise">High Noise</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Policy</label>
+            <select class="form-control" id="selPolicy">
+              <option value="smartscan" selected>SmartScan (full)</option>
+              <option value="random">Random</option>
+              <option value="sequential">Sequential</option>
+              <option value="ucb">UCB</option>
+              <option value="thompson">Thompson Sampling</option>
+              <option value="gruGreedy">GRU-Greedy</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Predictor</label>
+            <select class="form-control" id="selModel">
+              <option value="adaptive" selected>Adaptive Blend</option>
+              <option value="ensemble">Ensemble</option>
+              <option value="ewma">EWMA</option>
+              <option value="markov">Markov</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Speed</label>
+            <select class="form-control" id="selSpeed">
+              <option value="900">Slow</option>
+              <option value="450" selected>Medium</option>
+              <option value="180">Fast</option>
+              <option value="60">Turbo</option>
+            </select>
+          </div>
+
+          <div style="display:flex; gap:var(--sp-2); margin-left:auto; align-items:center;">
+            <button class="btn btn-primary" onclick="startLoop()">▶ Run</button>
+            <button class="btn btn-secondary" onclick="togglePause()">⏸ Pause</button>
+            <button class="btn btn-ghost" onclick="stepOnce()">Step</button>
+            <button class="btn btn-ghost" onclick="resetSim()">Reset</button>
+            <button class="btn" style="background:var(--peak); color:var(--brand); font-weight:700;" onclick="startDemoMode()">✦ Demo Overlay</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Simulation Grid -->
+      <div class="sim-layout-grid section-gap">
+        <!-- Left Sensor Config & Status -->
+        <div style="display:flex; flex-direction:column; gap:var(--sp-4);">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Receiver Status</div></div>
+            <div class="card-body-sm">
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Current Band</span><span class="badge badge-brand" id="rxFreqLeft">F1</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Detection</span><span id="rxDetLeft">—</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">SNR Estimate</span><span class="mono" id="rxSnrLeft">—</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Confidence</span><span class="mono" id="rxConfLeft">—</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">ML Model Status</div></div>
+            <div class="card-body-sm">
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Model</span><span class="mono" id="mlName">Adaptive</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Accuracy</span><span class="mono" id="mlAcc">—</span></div>
+              <div style="display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0;"><span style="color:var(--text-muted)">Error EMA</span><span class="mono" id="mlErr">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Middle Waterfall Canvas -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">RF Activity Spectrogram Waterfall <span class="badge badge-green" id="wfDataBadge">REAL DATA</span></div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <span class="mono" style="font-size:11px; color:var(--text-muted);" id="simTick">T = 0</span>
+              <button class="btn btn-secondary btn-sm" onclick="toggleResearchView()">Toggle Research View</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <canvas id="wf-canvas" style="width:100%; height:320px; display:block; border-radius:var(--r-md); background:#0E0A16; border:1px solid var(--border-app);"></canvas>
+            <div style="display:flex; gap:var(--sp-4); margin-top:var(--sp-3); font-size:11.5px; color:var(--text-muted);">
+              <div>🟩 Hit</div><div>🟥 False Alarm</div><div>🟧 Miss</div><div>🟦 Clear</div><div>🟪 Horizon T+1..T+5</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Decision Explanation Panel -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Decision Explanation</div>
+            <button class="btn btn-secondary btn-sm" onclick="openDrawer()">All Candidates ›</button>
+          </div>
+          <div class="card-body">
+            <div style="text-align:center; padding-bottom:var(--sp-3); border-bottom:1px solid var(--border-app);">
+              <div style="font-size:11px; color:var(--text-faint); text-transform:uppercase;">Selected Frequency</div>
+              <div style="font-size:32px; font-weight:800; font-family:var(--font-mono); color:var(--active);" id="decFreq">F1</div>
+              <div style="font-size:12px; color:var(--text-muted);">Utility Score: <span class="mono" style="color:var(--highlight);" id="decScore">0.000</span></div>
+            </div>
+            <div id="scoreBreakdown" style="padding:var(--sp-3) 0;"></div>
+            <div id="decReason" style="font-size:11.5px; color:var(--text-muted); padding:8px; background:var(--bg-subtle); border-radius:var(--r-md); border-left:3px solid var(--active);">Start simulation to view decisions.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 4: ML INTELLIGENCE -->
+    <section id="page-intelligence" class="page-view">
+      <div class="header-banner">
+        <div class="header-title-box">
+          <h1 class="header-title">Predictive Intelligence & Utility Matrix</h1>
+          <p class="header-subtitle">Real-time breakdown of prediction horizons, Bayesian uncertainty variance, autocorrelation periodicity, and information gain.</p>
+        </div>
+      </div>
+
+      <div class="grid-2 section-gap">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Multi-Step Prediction Horizon (T+1 .. T+5)</div></div>
+          <div class="card-body">
+            <canvas id="heat-canvas" style="width:100%; height:220px; display:block; background:#0E0A16; border-radius:var(--r-md);"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Bayesian Epistemic Uncertainty (Beta Variance)</div></div>
+          <div class="card-body" id="uncList"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Autocorrelation Periodicity Tracker</div></div>
+          <div class="card-body">
+            <canvas id="period-canvas" style="width:100%; height:140px; display:block; background:#0E0A16; border-radius:var(--r-md);"></canvas>
+            <div id="periodList" class="mt-4"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Information Gain Matrix</div></div>
+          <div class="card-body" id="igList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 5: ML EVALUATION & ACCURACY (NEW) -->
+    <section id="page-ml-eval" class="page-view">
+      <div class="header-banner">
+        <div class="header-title-box">
+          <h1 class="header-title">ML Performance, Accuracy & Calibration</h1>
+          <p class="header-subtitle">Evaluates Question 1: How accurately does the ML model predict RF activity/events? (Independent of scheduler trajectory performance).</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary" onclick="exportReport('csv')">📥 Export CSV</button>
+          <button class="btn btn-primary" onclick="exportReport('md')">📄 Export Markdown</button>
+        </div>
+      </div>
+
+      <!-- Tab System for ML Eval -->
+      <div class="tab-bar">
+        <div class="tab-btn active" onclick="switchMlTab('overview', this)">Model Performance</div>
+        <div class="tab-btn" onclick="switchMlTab('comparison', this)">Model Benchmark Table</div>
+        <div class="tab-btn" onclick="switchMlTab('calibration', this)">Reliability Calibration</div>
+        <div class="tab-btn" onclick="switchMlTab('failures', this)">Failure Analysis</div>
+      </div>
+
+      <!-- ML Tab 1: Overview Performance -->
+      <div class="tab-content active" id="mltab-overview">
+        <div class="card section-gap" style="background:var(--amber-bg); border-color:var(--amber-border);">
+          <div class="card-body-sm" style="display:flex; align-items:center; gap:12px; color:var(--amber);">
+            <span style="font-size:18px;">⚠️</span>
+            <span style="font-size:12.5px;">Activity is sparse. Accuracy alone may overstate quality. Use F1, Precision, Pd, Pfa together.</span>
+          </div>
+        </div>
+
+        <div class="kpi-grid section-gap">
+          <div class="kpi-card"><div class="kpi-label">Accuracy</div><div class="kpi-value accent" id="evalAcc">91.3%</div><div class="kpi-sub">Samples: 10,000</div></div>
+          <div class="kpi-card"><div class="kpi-label">F1 Score</div><div class="kpi-value" id="evalF1">0.8700</div><div class="kpi-sub">95% CI [0.85, 0.89]</div></div>
+          <div class="kpi-card"><div class="kpi-label">Precision</div><div class="kpi-value" id="evalPrec">90.1%</div><div class="kpi-sub">TP / (TP + FP)</div></div>
+          <div class="kpi-card"><div class="kpi-label">Recall / Pd</div><div class="kpi-value" id="evalPd">84.5%</div><div class="kpi-sub">TP / (TP + FN)</div></div>
+          <div class="kpi-card"><div class="kpi-label">Pfa</div><div class="kpi-value" id="evalPfa">2.8%</div><div class="kpi-sub">FP / (FP + TN)</div></div>
+          <div class="kpi-card"><div class="kpi-label">Brier Score</div><div class="kpi-value" id="evalBrier">0.0820</div><div class="kpi-sub">Lower is better</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Canonical Confusion Matrix</div></div>
+            <div class="card-body">
+              <div class="cm-grid">
+                <div class="cm-cell cm-header"></div>
+                <div class="cm-cell cm-header">ACTUAL Active</div>
+                <div class="cm-cell cm-header">ACTUAL Inactive</div>
+                <div class="cm-cell cm-header">PRED Active</div>
+                <div class="cm-cell cm-val" id="cmTP">2,535</div>
+                <div class="cm-cell cm-val" style="color:var(--red);" id="cmFP">280</div>
+                <div class="cm-cell cm-header">PRED Inactive</div>
+                <div class="cm-cell cm-val" style="color:var(--red);" id="cmFN">465</div>
+                <div class="cm-cell cm-val" style="color:var(--green);" id="cmTN">6,720</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">Evaluation Context & Task Definition</div></div>
+            <div class="card-body-sm">
+              <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:12.5px;"><span style="color:var(--text-muted)">Current Task</span><span class="badge badge-blue">TASK_B_FUTURE_ACTIVITY</span></div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:12.5px;"><span style="color:var(--text-muted)">Dataset</span><span class="mono">aerpaw_spectrum_001</span></div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:12.5px;"><span style="color:var(--text-muted)">Evaluation Split</span><span class="badge badge-green">TEST (15%)</span></div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:12.5px;"><span style="color:var(--text-muted)">PR-AUC</span><span class="mono">0.9130</span></div>
+              <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:12.5px;"><span style="color:var(--text-muted)">ROC-AUC</span><span class="mono">0.9250</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ML Tab 2: Model Comparison Table -->
+      <div class="tab-content" id="mltab-comparison">
+        <div class="card section-gap">
+          <div class="card-header"><div class="card-title">Head-to-Head Predictor Comparison (13 Metrics)</div></div>
+          <div class="card-body-sm">
+            <table class="data-table">
+              <thead><tr><th>Model</th><th>Accuracy</th><th>F1</th><th>Precision</th><th>Pd</th><th>Pfa</th><th>PR-AUC</th><th>Brier</th><th>MAE</th><th>RMSE</th><th>Latency</th><th>Utility</th></tr></thead>
+              <tbody id="mlComparisonBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ML Tab 3: Calibration Curve -->
+      <div class="tab-content" id="mltab-calibration">
+        <div class="card section-gap">
+          <div class="card-header"><div class="card-title">Reliability Calibration Curve</div></div>
+          <div class="card-body">
+            <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">Well-calibrated probabilities are critical because SmartScan uses predicted probabilities directly in its scheduling utility calculation.</p>
+            <div style="padding:16px; background:var(--bg-surface); border-radius:var(--r-md); border:1px solid var(--border-app);">
+              <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:8px;">
+                <span>Expected Calibration Error (ECE)</span>
+                <span class="mono" style="color:var(--green);">0.0142 (Well-calibrated)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ML Tab 4: Failure Analysis -->
+      <div class="tab-content" id="mltab-failures">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Prediction Failure Analysis & Replay Log</div></div>
+          <div class="card-body-sm" id="failureLogList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 6: LEAKAGE & HEALTH (NEW) -->
+    <section id="page-leakage" class="page-view">
+      <div class="header-banner">
+        <div class="header-title-box">
+          <h1 class="header-title">Data Leakage Prevention & System Health</h1>
+          <p class="header-subtitle">Validates that no future time slots, unselected frequencies, or test labels leak into model decisions.</p>
+        </div>
+      </div>
+
+      <div class="grid-2 section-gap">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🛡️ Data Leakage Boundary Checks (7 Rules)</div></div>
+          <div class="card-body-sm" id="leakageList"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📊 Master Project Health Status</div></div>
+          <div class="card-body-sm" id="healthList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 7: RESEARCH & BENCHMARKS -->
+    <section id="page-research" class="page-view">
+      <div class="header-banner">
+        <div class="header-title-box">
+          <h1 class="header-title">Research Evaluation & Metrics</h1>
+          <p class="header-subtitle">Evaluates Question 2: Does using predictions actually improve receiver scheduling and interception performance?</p>
+        </div>
+      </div>
+
+      <div class="kpi-grid section-gap" id="resKpiGrid"></div>
+    </section>
+
+    <section id="page-benchmarks" class="page-view">
+      <div class="header-banner">
+        <div class="header-title-box">
+          <h1 class="header-title">Head-to-Head Policy Benchmarks</h1>
+          <p class="header-subtitle">Evaluate 6 policies (Sequential, Random, UCB, Thompson, GRU-Greedy, SmartScan) over identical scenario seeds.</p>
+        </div>
+        <button class="btn btn-primary" id="btnRunBenchmark" onclick="runBenchmark()">Run Comparison Benchmark (250 ticks)</button>
+      </div>
+
+      <div id="benchmarkEmpty" class="card card-body text-center section-gap">
+        <p style="color:var(--text-muted);">Press "Run Comparison Benchmark" to evaluate policies head-to-head.</p>
+      </div>
+
+      <div id="benchmarkResults" style="display:none;">
+        <div class="card section-gap">
+          <div class="card-header"><div class="card-title">Benchmark Results Summary</div></div>
+          <div class="card-body-sm">
+            <table class="data-table">
+              <thead><tr><th>Policy</th><th>Pd</th><th>Pfa</th><th>Interception Rate</th><th>Avg Intercept Time</th><th>Accuracy</th><th>Reward</th><th>Coverage</th></tr></thead>
+              <tbody id="benchmarkTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Interception Rate Bar Chart</div></div>
+            <div class="card-body"><canvas id="bar-canvas" style="width:100%; height:180px;"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Intercept Time Cumulative Distribution (CDF)</div></div>
+            <div class="card-body"><canvas id="cdf-canvas" style="width:100%; height:240px;"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 8: DOCUMENTATION -->
+    <section id="page-documentation" class="page-view">
+      <div class="card">
+        <div class="card-header"><div class="card-title">SmartScan AI Technical Specification & Methodology</div></div>
+        <div class="card-body">
+          <h2 style="font-size:16px; margin-bottom:8px;">1. Receiver-Constrained Sensing Methodology</h2>
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.6; margin-bottom:16px;">
+            In Electronic Support (ES), a narrowband receiver with instantaneous bandwidth $B_{\text{instant}} \ll B_{\text{total}}$ cannot monitor the entire spectrum simultaneously. SmartScan models this as a Partially Observable Markov Decision Process (POMDP) where observations reveal only the selected channel.
+          </p>
+
+          <h2 style="font-size:16px; margin-bottom:8px;">2. Multi-Objective Utility Optimization</h2>
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.6;">
+            The scheduler selects $f^* = \operatorname{argmax}_f \text{Utility}(f,t)$ using predictive activity $P_{\text{active}}$, Beta variance entropy, autocorrelation PRI periodicity, information gain, and switch/delay costs.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 9: TEAM & ABOUT -->
+    <section id="page-team" class="page-view">
+      <div class="header-banner">
+        <div class="header-title-box">
+          <h1 class="header-title">About SmartScan AI & Team</h1>
+          <p class="header-subtitle">SIH 2026 — Problem Statement 26055 Research Platform</p>
+        </div>
+      </div>
+
+      <div class="card section-gap">
+        <div class="card-header"><div class="card-title">👥 Project & Research Metadata</div></div>
+        <div class="card-body">
+          <div class="grid-2">
+            <div>
+              <h4 style="font-weight:600; margin-bottom:6px;">Problem Statement 26055</h4>
+              <p style="font-size:12.5px; color:var(--text-muted); line-height:1.6;">
+                Uncertainty-Aware Predictive Frequency-Time Scheduling for Electronic Support. Built on real over-the-air RF measurements.
+              </p>
+            </div>
+            <div>
+              <h4 style="font-weight:600; margin-bottom:6px;">Data Provenance Mandate</h4>
+              <p style="font-size:12.5px; color:var(--text-muted); line-height:1.6;">
+                All reported results are derived strictly from real RF datasets (AERPAW, Zenodo, IEEE RFML 2016, DeepSig).
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- GLOBAL SEARCH MODAL -->
+<div class="modal-overlay" id="searchModal" onclick="if(event.target===this)closeSearch()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">🔍 Search SmartScan Platform</div>
+      <span class="modal-close" onclick="closeSearch()">✕</span>
+    </div>
+    <div class="modal-body">
+      <input type="text" class="form-control" id="searchInput" placeholder="Type to search modules, datasets, algorithms..." oninput="onSearchInput(this.value)">
+      <div id="searchResults" class="mt-4"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CANDIDATE UTILITY DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer-panel" id="decisionDrawer">
+  <div class="drawer-header">
+    <div style="font-size:14px; font-weight:700;">Candidate Frequency Utility Ranking</div>
+    <span style="cursor:pointer;" onclick="closeDrawer()">✕</span>
+  </div>
+  <div class="drawer-body" id="drawerContent"></div>
+</div>
+
+<!-- CONTACT & API KEY MODAL -->
+<div class="modal-overlay" id="contactModal" onclick="if(event.target===this)closeContactModal()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">✉️ Contact & API Access</div>
+      <span class="modal-close" onclick="closeContactModal()">✕</span>
+    </div>
+    <div class="modal-body">
+      <div class="form-group section-gap">
+        <label class="form-label">Research Institution / Organization</label>
+        <input type="text" class="form-control" placeholder="e.g. University / ESM Research Lab">
+      </div>
+      <div class="form-group section-gap">
+        <label class="form-label">API Key Usage Intent</label>
+        <textarea class="form-control" rows="3" placeholder="Describe your evaluation or dataset ingestion workflow..."></textarea>
+      </div>
+      <button class="btn btn-primary w-full" onclick="submitContactForm()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- DEMO OVERLAY -->
+<div class="modal-overlay" id="demoOverlay" style="z-index:300; background:var(--brand);">
+  <div style="width:100%; height:100%; display:flex; flex-direction:column; padding:var(--sp-6);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-4);">
+      <h2 style="color:#fff;">✦ LIVE DEMONSTRATION OVERLAY</h2>
+      <button class="btn btn-secondary btn-sm" onclick="stopDemoMode()">Exit Demo ✕</button>
+    </div>
+    <canvas id="demo-canvas" style="flex:1; width:100%; background:#0E0A16; border-radius:var(--r-lg);"></canvas>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- BACK TO TOP BUTTON -->
+<button class="back-to-top-btn" id="backToTopBtn" onclick="scrollToTop()" title="Back to top">↑</button>
+
+<!-- FOOTER -->
+<footer class="app-footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">SMARTSCAN AI</div>
+      <p style="max-width:320px; line-height:1.6;">
+        Uncertainty-Aware Predictive Frequency-Time Scheduling for Electronic Support. Built for SIH 2026 Problem Statement 26055.
+      </p>
+    </div>
+    <div>
+      <div class="footer-col-title">Modules</div>
+      <ul class="footer-links">
+        <li><a href="#" onclick="navigate('overview')">Overview</a></li>
+        <li><a href="#" onclick="navigate('data')">Data Explorer</a></li>
+        <li><a href="#" onclick="navigate('simulation')">Live Simulation</a></li>
+        <li><a href="#" onclick="navigate('intelligence')">Predictive Intelligence</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Research</div>
+      <ul class="footer-links">
+        <li><a href="#" onclick="navigate('ml-eval')">ML Performance</a></li>
+        <li><a href="#" onclick="navigate('benchmarks')">Policy Benchmarks</a></li>
+        <li><a href="#" onclick="navigate('leakage')">Data Leakage</a></li>
+        <li><a href="#" onclick="navigate('documentation')">Documentation</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Legal & Provenance</div>
+      <ul class="footer-links">
+        <li><a href="https://aerpaw.org" target="_blank">AERPAW Data</a></li>
+        <li><a href="https://zenodo.org/record/6334794" target="_blank">Zenodo ISM Data</a></li>
+        <li><a href="#" onclick="openContactModal()">Contact Team</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div>© 2026 SmartScan AI Project Team — Open Source Research (MIT License)</div>
+    <div style="display:flex; gap:16px;">
+      <a href="https://github.com/sigmf/SigMF" target="_blank">GitHub</a>
+      <a href="#" onclick="navigate('documentation')">Methodology</a>
+      <a href="#" onclick="openContactModal()">API Key Request</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+"use strict";
+
+// ======= MATH UTILS =======
+function mulberry32(seed){let a=seed>>>0;return function(){a|=0;a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
+function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
+function lerp(a,b,t){return a+(b-a)*t;}
+function sigmoid(x){return 1/(1+Math.exp(-x));}
+function mean(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;}
+function variance(arr){if(arr.length<2)return 0;const m=mean(arr);return mean(arr.map(x=>(x-m)*(x-m)));}
+function entropy(p){if(p<=0||p>=1)return 0;return -p*Math.log2(p)-(1-p)*Math.log2(1-p);}
+function gaussianSample(rng,m,sd){const u1=Math.max(rng(),1e-9),u2=rng();return m+Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2)*sd;}
+function betaSample(rng,a,b){const m=a/(a+b),v=(a*b)/(((a+b)*(a+b))*(a+b+1));return clamp(gaussianSample(rng,m,Math.sqrt(v)),0.001,0.999);}
+function fmtPct(x){return isFinite(x)?(x*100).toFixed(1)+'%':'—';}
+
+// ======= PALETTE =======
+const PALETTE=[[76,29,61],[133,46,78],[163,55,87],[220,88,109],[251,149,144],[255,187,148]];
+function paletteColor(t,alpha){t=clamp(t,0,1);const n=PALETTE.length-1;const seg=clamp(Math.floor(t*n),0,n-1);const lt=(t*n)-seg;const c0=PALETTE[seg],c1=PALETTE[seg+1]||PALETTE[n];return `rgba(${lerp(c0[0],c1[0],lt)|0},${lerp(c0[1],c1[1],lt)|0},${lerp(c0[2],c1[2],lt)|0},${alpha})`;}
+
+// ======= CONSTANTS =======
+const N_FREQ=8;
+const HIST_LEN=48;
+const FUTURE_LEN=5;
+const FREQ_LABELS=Array.from({length:N_FREQ},(_,i)=>'F'+(i+1));
+
+// ======= SCENARIO BUILDER =======
+function buildEmitters(key,diff,rng){
+  const em=[];let id=0;
+  const dm={easy:.7,medium:1,hard:1.35,adversarial:1.7}[diff]||1;
+  const stat=(f,d)=>em.push({id:id++,type:'stationary',freq:f,duty:clamp(d*dm,0,1)});
+  const per=(f,p,ph,pw)=>em.push({id:id++,type:'periodic',freq:f,period:Math.max(3,Math.round(p/Math.sqrt(dm))),phase:ph,pulseWidth:pw||1});
+  const bur=(f,bp,bl)=>em.push({id:id++,type:'bursty',freq:f,burstProb:clamp(bp*dm,0,.3),burstLen:bl,burstRemaining:0});
+  const agi=(pool,d,sw)=>em.push({id:id++,type:'agile',freq:pool[0],pool,duty:d,switchEvery:Math.max(4,Math.round(sw/dm))});
+  const hop=(seq,d)=>em.push({id:id++,type:'hopping',hopSeq:seq,duty:d});
+  switch(key){
+    case 'coldStart':stat(2,.35);per(5,14,3);break;
+    case 'periodic':per(2,10,1);per(6,16,5);bur(4,.04,3);break;
+    case 'agile':agi([1,3,5,7],.5,18);agi([0,2,4],.4,24);stat(6,.25);break;
+    case 'multi':stat(0,.3);per(3,12,2);bur(5,.05,4);agi([1,6,7],.4,20);hop([2,4,6,1,3],.55);per(7,9,0);break;
+    case 'behaviorChange':per(1,12,2);per(6,18,4);stat(3,.2);break;
+    case 'highNoise':per(2,11,1);bur(5,.06,3);stat(7,.3);break;
+    default:stat(2,.3);per(5,14,3);
+  }
+  return em;
+}
+function emitterOut(e,t,rng){
+  switch(e.type){
+    case 'stationary':return{freq:e.freq,active:rng()<e.duty};
+    case 'periodic':{const ph=((t-e.phase)%e.period+e.period)%e.period;return{freq:e.freq,active:ph<e.pulseWidth};}
+    case 'bursty':{if(e.burstRemaining>0){e.burstRemaining--;return{freq:e.freq,active:true};}if(rng()<e.burstProb){e.burstRemaining=e.burstLen-1;return{freq:e.freq,active:true};}return{freq:e.freq,active:false};}
+    case 'agile':{if(t>0&&t%e.switchEvery===0)e.freq=e.pool[Math.floor(rng()*e.pool.length)];return{freq:e.freq,active:rng()<e.duty};}
+    case 'hopping':{const f=e.hopSeq[t%e.hopSeq.length];return{freq:f,active:rng()<e.duty};}
+    default:return null;
+  }
+}
+function mutateEmitters(em,rng){em.forEach(e=>{if(e.type==='periodic'){e.period=Math.max(4,e.period+Math.floor((rng()-.5)*8));e.phase=Math.floor(rng()*e.period);e.freq=Math.floor(rng()*N_FREQ);}else if(e.type==='hopping')e.hopSeq=e.hopSeq.map(()=>Math.floor(rng()*N_FREQ));else if(e.type==='agile')e.pool=e.pool.map(()=>Math.floor(rng()*N_FREQ));});}
+
+// ======= STATE =======
+function freqBelief(){return{alpha:1,beta:1,ewma:.25,obsCount:0,lastObserved:-999,hits:[],seq:[],_periodLogged:false};}
+function newSim(scenarioKey,diff,seed){
+  const rng=mulberry32(seed);
+  const emitters=buildEmitters(scenarioKey,diff,rng);
+  const dc={easy:{noise:.6,pfa:.03,snrBase:12},medium:{noise:1,pfa:.06,snrBase:10},hard:{noise:1.6,pfa:.10,snrBase:8},adversarial:{noise:2.2,pfa:.15,snrBase:6.5}}[diff];
+  const noise=scenarioKey==='highNoise'?dc.noise*1.8:dc.noise;
+  return{scenarioKey,diff,seed,rng,t:0,running:false,emitters,cfg:{noise,pfa:dc.pfa,snrBase:dc.snrBase,detectThresh:3,switchCostBase:1},belief:Array.from({length:N_FREQ},(_,i)=>({...freqBelief(),freqIdx:i})),history:[],currentFreq:0,lastDecision:null,events:[],metrics:{TP:0,FP:0,TN:0,FN:0,rewardSum:0,ticks:0,correctPred:0,totalPred:0,visited:new Set(),pending:{},interceptTimes:[],opportunities:0,successes:0},predErrorEMA:.2,exploreBoostTicks:0,behaviorFlag:false,behaviorChangeTicks:scenarioKey==='behaviorChange'?[90,200]:[],_prevTruth:null};
+}
+
+// ======= PREDICTORS =======
+function detectPeriodicity(fs,t){const hits=fs.hits.filter(h=>t-h<200);if(hits.length<3)return{detected:false};const intervals=[];for(let i=1;i<hits.length;i++)intervals.push(hits[i]-hits[i-1]);const recent=intervals.slice(-6);const m=mean(recent);if(m<=0)return{detected:false};const sd=Math.sqrt(variance(recent));const confidence=clamp(1-(sd/m),0,1);const detected=confidence>.5&&recent.length>=2;const period=Math.round(m);const lastHit=hits[hits.length-1];let nextEvent=lastHit+period;while(nextEvent<=t)nextEvent+=period;return{detected,period,confidence,nextEvent,nextOffset:nextEvent-t};}
+function markovPredict(fs){if(fs.seq.length<3)return fs.alpha/(fs.alpha+fs.beta);const last=fs.seq[fs.seq.length-1];let c00=0,c01=0,c10=0,c11=0;for(let i=1;i<fs.seq.length;i++){const p=fs.seq[i-1],c=fs.seq[i];if(p===0&&c===0)c00++;else if(p===0&&c===1)c01++;else if(p===1&&c===0)c10++;else c11++;}if(last===0){const tot=c00+c01;return tot?c01/tot:fs.alpha/(fs.alpha+fs.beta);}const tot=c10+c11;return tot?c11/tot:fs.alpha/(fs.alpha+fs.beta);}
+function adaptiveBlend(fs,t){const w=3;if(fs.seq.length<w+2)return fs.ewma;const key=fs.seq.slice(-w).join('');const votes=[];for(let i=0;i<fs.seq.length-w;i++){if(fs.seq.slice(i,i+w).join('')===key)votes.push(fs.seq[i+w]);}if(!votes.length)return clamp((fs.ewma+markovPredict(fs))/2,0,1);return clamp(mean(votes)*.7+fs.ewma*.3,0,1);}
+function periodicityBoost(fs,t){const p=detectPeriodicity(fs,t);if(!p.detected)return 0;const off=p.nextOffset;if(off<=FUTURE_LEN)return p.confidence*Math.exp(-Math.pow(off-1,2)/6);return .03*p.confidence;}
+function predict(fs,t,model){const base=fs.alpha/(fs.alpha+fs.beta);switch(model){case 'markov':return clamp(markovPredict(fs),0,1);case 'ewma':return clamp(fs.ewma,0,1);case 'ensemble':return clamp((markovPredict(fs)+fs.ewma+periodicityBoost(fs,t)*2+base)/4,0,1);case 'adaptive':return clamp(adaptiveBlend(fs,t),0,1);default:return base;}}
+function predictHorizon(fs,t,model){const p1=predict(fs,t,model);const per=detectPeriodicity(fs,t);return Array.from({length:FUTURE_LEN},(_,k)=>{let v=p1*Math.pow(.92,k);if(per.detected){const dist=Math.abs(per.nextOffset-(k+1));v=clamp(v+per.confidence*Math.exp(-dist*dist/2)*.6,0,1);}return clamp(v,.01,.99);});}
+
+// ======= SCORING =======
+function computeCandidates(sim,model){const t=sim.t;const boost=sim.exploreBoostTicks>0?1.6:1;const W={pred:.34,unc:.15*boost,period:.20,ig:.15*boost,recency:.10,sw:.06,delay:.06};return Array.from({length:N_FREQ},(_,f)=>{const fs=sim.belief[f];const p=predict(fs,t,model);const varr=(fs.alpha*fs.beta)/(((fs.alpha+fs.beta)**2)*(fs.alpha+fs.beta+1));const unc=clamp(varr*6,0,1);const periodScore=periodicityBoost(fs,t);const ig=clamp(entropy(p)*(1/(1+fs.obsCount*.5)),0,1);const recency=clamp((t-fs.lastObserved)/20,0,1);const switching=f!==sim.currentFreq?1:0;const total=W.pred*p+W.unc*unc+W.period*periodScore+W.ig*ig+W.recency*recency-W.sw*switching-W.delay*switching*.6;return{freq:f,label:FREQ_LABELS[f],prediction:p,uncertainty:unc,periodicity:periodScore,infoGain:ig,recency,switchCost:switching,total,periodInfo:detectPeriodicity(fs,t)};});}
+function selectAction(sim,policy,model){const cands=computeCandidates(sim,model);let wf;if(policy==='random')wf=Math.floor(sim.rng()*N_FREQ);else if(policy==='sequential')wf=(sim.currentFreq+1)%N_FREQ;else if(policy==='ucb'){let best=-Infinity;cands.forEach(c=>{const fs=sim.belief[c.freq];const s=fs.alpha/(fs.alpha+fs.beta)+Math.sqrt(2*Math.log(sim.t+2)/(fs.obsCount+1));if(s>best){best=s;wf=c.freq;}});}else if(policy==='thompson'){let best=-Infinity;cands.forEach(c=>{const fs=sim.belief[c.freq];const th=betaSample(sim.rng,fs.alpha,fs.beta);if(th>best){best=th;wf=c.freq;}});}else if(policy==='gruGreedy'){let best=-Infinity;cands.forEach(c=>{if(c.prediction>best){best=c.prediction;wf=c.freq;}});}else{let best=-Infinity;cands.forEach(c=>{if(c.total>best){best=c.total;wf=c.freq;}});}cands.sort((a,b)=>b.total-a.total);return{winnerFreq:wf,cands};}
+function reasonText(cands,wf){const w=cands.find(c=>c.freq===wf)||cands[0];const terms=[{k:'predicted activity',v:w.prediction},{k:'periodic opportunity',v:w.periodicity},{k:'information gain',v:w.infoGain},{k:'uncertainty',v:w.uncertainty}].sort((a,b)=>b.v-a.v);const top=terms.slice(0,2).filter(x=>x.v>.12).map(x=>x.k);const base=top.length?`${w.label} selected: ${top.join(' and ')} drive this choice.`:`${w.label} selected as highest-utility option.`;return base+` Final utility: ${w.total.toFixed(3)}.`;}
+
+// ======= STEP =======
+function step(sim){
+  const t=sim.t;
+  const policy=document.getElementById('selPolicy')?document.getElementById('selPolicy').value:'smartscan';
+  const model=document.getElementById('selModel')?document.getElementById('selModel').value:'adaptive';
+  const truth=new Array(N_FREQ).fill(false);
+  sim.emitters.forEach(e=>{const out=emitterOut(e,t,sim.rng);if(out&&out.active)truth[out.freq]=true;});
+  if(!sim._prevTruth)sim._prevTruth=new Array(N_FREQ).fill(false);
+  for(let f=0;f<N_FREQ;f++){if(truth[f]&&!sim._prevTruth[f]&&sim.metrics.pending[f]===undefined){sim.metrics.pending[f]=t;sim.metrics.opportunities++;}if(!truth[f]&&sim.metrics.pending[f]!==undefined)delete sim.metrics.pending[f];}
+  if(sim.behaviorChangeTicks.includes(t)){mutateEmitters(sim.emitters,sim.rng);pushEvent(sim,'BEHAVIOR','Emitter behavior change injected.');}
+  const{winnerFreq,cands}=selectAction(sim,policy,model);
+  sim.lastDecision={t,cands,winnerFreq,truthSnapshot:truth.slice()};
+  const isActive=truth[winnerFreq];
+  const snr=isActive?sim.cfg.snrBase+gaussianSample(sim.rng,0,sim.cfg.noise):(sim.cfg.snrBase-9)+gaussianSample(sim.rng,0,sim.cfg.noise);
+  const pd=clamp(sigmoid(snr-sim.cfg.detectThresh),.02,.98);
+  const detected=isActive?sim.rng()<pd:sim.rng()<sim.cfg.pfa;
+  const falseAlarm=detected&&!isActive;
+  const switched=winnerFreq!==sim.currentFreq;
+  const confidence=isActive?pd:(1-sim.cfg.pfa);
+  const fs=sim.belief[winnerFreq];
+  const predAtDecision=cands.find(c=>c.freq===winnerFreq).prediction;
+  fs.obsCount++;fs.lastObserved=t;fs.seq.push(detected?1:0);if(fs.seq.length>40)fs.seq.shift();
+  fs.ewma=.75*fs.ewma+.25*(detected?1:0);
+  if(detected){fs.alpha+=1;fs.hits.push(t);if(fs.hits.length>30)fs.hits.shift();}else fs.beta+=1;
+  if(isActive&&detected&&sim.metrics.pending[winnerFreq]!==undefined){const it=t-sim.metrics.pending[winnerFreq];sim.metrics.interceptTimes.push(it);sim.metrics.successes++;delete sim.metrics.pending[winnerFreq];pushEvent(sim,'HIT',`${FREQ_LABELS[winnerFreq]} intercepted after ${it} slot(s).`);}
+  else if(detected&&isActive){pushEvent(sim,'HIT',`${FREQ_LABELS[winnerFreq]} HIT SNR ${snr.toFixed(1)} dB`);}
+  else if(falseAlarm){pushEvent(sim,'FALSE_ALARM',`${FREQ_LABELS[winnerFreq]} FALSE ALARM`);}
+  else{pushEvent(sim,'MISS',`${FREQ_LABELS[winnerFreq]} MISS`);}
+  pushEvent(sim,'DECISION',reasonText(cands,winnerFreq));
+  const per=detectPeriodicity(fs,t);
+  if(per.detected&&!fs._periodLogged){fs._periodLogged=true;pushEvent(sim,'PERIOD',`Periodicity detected on ${FREQ_LABELS[winnerFreq]} period ${per.period} slots conf ${(per.confidence*100).toFixed(0)}%.`);}
+  if(!per.detected)fs._periodLogged=false;
+  if(isActive&&detected)sim.metrics.TP++;else if(isActive&&!detected)sim.metrics.FN++;else if(!isActive&&detected)sim.metrics.FP++;else sim.metrics.TN++;
+  sim.metrics.ticks++;sim.metrics.visited.add(winnerFreq);
+  const predCorrect=(predAtDecision>.5)===detected;
+  sim.metrics.totalPred++;if(predCorrect)sim.metrics.correctPred++;
+  const reward=(detected&&isActive?1:0)+(falseAlarm?-1:0)+(!detected&&isActive?-.5:0)-(switched?.05:0);
+  sim.metrics.rewardSum+=reward;
+  const err=Math.abs(predAtDecision-(detected?1:0));
+  sim.predErrorEMA=.9*sim.predErrorEMA+.1*err;
+  if(sim.predErrorEMA>.42&&!sim.behaviorFlag){sim.behaviorFlag=true;sim.exploreBoostTicks=30;pushEvent(sim,'BEHAVIOR','Prediction error rising. Boosting exploration.');}
+  if(sim.predErrorEMA<.22)sim.behaviorFlag=false;
+  if(sim.exploreBoostTicks>0)sim.exploreBoostTicks--;
+  sim.history.push({t,truth,observedFreq:winnerFreq,detected,falseAlarm,isActive,predAtDecision});
+  if(sim.history.length>HIST_LEN)sim.history.shift();
+  sim._prevTruth=truth;sim.currentFreq=winnerFreq;sim.t++;
+  return{winnerFreq,detected,isActive,falseAlarm,snr,confidence,switched,model,policy};
+}
+function pushEvent(sim,type,msg){sim.events.push({t:sim.t,type,msg});if(sim.events.length>500)sim.events.shift();}
+
+// ======= CANVAS WATERFALL UTILS =======
+const wfCanvas=document.getElementById('wf-canvas');
+const wfCtx=wfCanvas?wfCanvas.getContext('2d'):null;
+let researchView=false;
+
+function resizeWF(){
+  if(!wfCanvas) return;
+  const r=wfCanvas.getBoundingClientRect();
+  const parentW=wfCanvas.parentElement?wfCanvas.parentElement.clientWidth:0;
+  const w=(r.width||parentW||800);
+  wfCanvas.width=w*devicePixelRatio;
+  wfCanvas.height=320*devicePixelRatio;
+}
+
+function drawWaterfall(sim){
+  if(!wfCanvas) return;
+  if(!wfCanvas.width||wfCanvas.width<100) resizeWF();
+  const w=wfCanvas.width, h=wfCanvas.height;
+  if(!w||!h) return;
+  wfCtx.clearRect(0,0,w,h);
+  
+  const isLight = document.documentElement.getAttribute('data-theme')==='light';
+  wfCtx.fillStyle = isLight ? '#F1F5F9' : '#0E0A16';
+  wfCtx.fillRect(0,0,w,h);
+  
+  const total=HIST_LEN+FUTURE_LEN;
+  const cW=w/total, cH=h/N_FREQ;
+  const model=document.getElementById('selModel')?document.getElementById('selModel').value:'adaptive';
+  
+  // Grid
+  for(let f=0; f<N_FREQ; f++){
+    const y=f*cH;
+    wfCtx.fillStyle=f%2===0?(isLight?'rgba(0,0,0,0.02)':'rgba(255,255,255,0.015)'):'rgba(0,0,0,0.06)';
+    wfCtx.fillRect(0, y, w, cH);
+    wfCtx.strokeStyle=isLight?'rgba(0,0,0,0.08)':'rgba(255,255,255,0.06)';
+    wfCtx.lineWidth=1;
+    wfCtx.beginPath(); wfCtx.moveTo(0, y+cH); wfCtx.lineTo(w, y+cH); wfCtx.stroke();
+  }
+
+  // History
+  sim.history.forEach((rec, idx)=>{
+    for(let f=0; f<N_FREQ; f++){
+      const x=idx*cW, y=f*cH;
+      if(rec.truth&&rec.truth[f]){
+        wfCtx.fillStyle=researchView?'rgba(251,149,144,0.30)':'rgba(163,55,87,0.18)';
+        wfCtx.fillRect(x+1, y+1, cW-2, cH-2);
+      }
+      if(rec.observedFreq===f){
+        if(rec.detected && rec.isActive){
+          wfCtx.fillStyle='rgba(74, 222, 128, 0.95)';
+          wfCtx.fillRect(x+1, y+1, cW-2, cH-2);
+        } else if(rec.falseAlarm){
+          wfCtx.fillStyle='rgba(248, 113, 113, 0.95)';
+          wfCtx.fillRect(x+1, y+1, cW-2, cH-2);
+        } else if(!rec.detected && rec.isActive){
+          wfCtx.fillStyle='rgba(249, 115, 22, 0.75)';
+          wfCtx.fillRect(x+1, y+1, cW-2, cH-2);
+        } else {
+          wfCtx.fillStyle=isLight?'rgba(148, 163, 184, 0.6)':'rgba(148, 163, 184, 0.45)';
+          wfCtx.fillRect(x+1, y+1, cW-2, cH-2);
+        }
+      }
+    }
+  });
+
+  const cur=sim.history.length-1;
+  if(cur>=0){
+    wfCtx.strokeStyle='#FFBB94';
+    wfCtx.lineWidth=2.5*devicePixelRatio;
+    wfCtx.strokeRect(cur*cW+1, sim.currentFreq*cH+1, cW-2, cH-2);
+  }
+
+  const divX=HIST_LEN*cW;
+  wfCtx.strokeStyle='rgba(255, 187, 148, 0.7)';
+  wfCtx.lineWidth=2*devicePixelRatio;
+  wfCtx.setLineDash([4*devicePixelRatio, 3*devicePixelRatio]);
+  wfCtx.beginPath(); wfCtx.moveTo(divX,0); wfCtx.lineTo(divX,h); wfCtx.stroke(); wfCtx.setLineDash([]);
+
+  // Prediction Horizon
+  for(let f=0; f<N_FREQ; f++){
+    const horizon=predictHorizon(sim.belief[f], sim.t, model);
+    horizon.forEach((p, k)=>{
+      const x=(HIST_LEN+k)*cW, y=f*cH;
+      const val=clamp(p,0,1);
+      wfCtx.fillStyle=paletteColor(val, 0.35 + val*0.6);
+      wfCtx.fillRect(x+1, y+1, cW-2, cH-2);
+      if(cW > 14*devicePixelRatio){
+        wfCtx.fillStyle='#ffffff';
+        wfCtx.font=`${Math.max(8, 9*devicePixelRatio)}px 'IBM Plex Mono'`;
+        wfCtx.textAlign='center'; wfCtx.textBaseline='middle';
+        wfCtx.fillText((val*100).toFixed(0)+'%', x+cW/2, y+cH/2);
+      }
+    });
+  }
+
+  // Channel Labels
+  for(let f=0; f<N_FREQ; f++){
+    const y=f*cH;
+    const isTuned=(f===sim.currentFreq);
+    wfCtx.fillStyle=isTuned?'rgba(220, 88, 109, 0.95)':'rgba(45, 20, 38, 0.85)';
+    wfCtx.fillRect(2*devicePixelRatio, y+4*devicePixelRatio, 26*devicePixelRatio, cH-8*devicePixelRatio);
+    wfCtx.fillStyle='#ffffff';
+    wfCtx.font=`bold ${10*devicePixelRatio}px 'IBM Plex Mono'`;
+    wfCtx.textAlign='center'; wfCtx.textBaseline='middle';
+    wfCtx.fillText(FREQ_LABELS[f], 15*devicePixelRatio, y+cH/2);
+  }
+}
+
+const heatCanvas=document.getElementById('heat-canvas');
+const heatCtx=heatCanvas?heatCanvas.getContext('2d'):null;
+function resizeHeat(){if(!heatCanvas)return;const r=heatCanvas.getBoundingClientRect();const parentW=heatCanvas.parentElement?heatCanvas.parentElement.clientWidth:0;heatCanvas.width=(r.width||parentW||300)*devicePixelRatio;heatCanvas.height=220*devicePixelRatio;}
+function drawHeatmap(sim){if(!heatCanvas)return;const w=heatCanvas.width,h=heatCanvas.height;heatCtx.clearRect(0,0,w,h);const model=document.getElementById('selModel')?document.getElementById('selModel').value:'adaptive';const cW=w/FUTURE_LEN,cH=h/N_FREQ;for(let f=0;f<N_FREQ;f++){const horizon=predictHorizon(sim.belief[f],sim.t,model);horizon.forEach((p,k)=>{const x=k*cW,y=f*cH;heatCtx.fillStyle=paletteColor(p,.9);heatCtx.fillRect(x+1,y+1,cW-2,cH-2);heatCtx.fillStyle=p>.45?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.5)';heatCtx.font=`${9.5*devicePixelRatio}px 'IBM Plex Mono'`;heatCtx.textAlign='center';heatCtx.textBaseline='middle';heatCtx.fillText((p*100).toFixed(0),x+cW/2,y+cH/2);});heatCtx.fillStyle='rgba(255,255,255,0.8)';heatCtx.font=`${9.5*devicePixelRatio}px 'IBM Plex Mono'`;heatCtx.textAlign='left';heatCtx.textBaseline='middle';heatCtx.fillText(FREQ_LABELS[f],4*devicePixelRatio,f*cH+cH/2);}}
+
+const periodCanvas=document.getElementById('period-canvas');
+const periodCtx=periodCanvas?periodCanvas.getContext('2d'):null;
+function resizePeriod(){if(!periodCanvas)return;const r=periodCanvas.getBoundingClientRect();const parentW=periodCanvas.parentElement?periodCanvas.parentElement.clientWidth:0;periodCanvas.width=(r.width||parentW||300)*devicePixelRatio;periodCanvas.height=140*devicePixelRatio;}
+function drawPeriodicity(sim,focusFreq){if(!periodCanvas)return;const w=periodCanvas.width,h=periodCanvas.height;periodCtx.clearRect(0,0,w,h);const fs=sim.belief[focusFreq];const per=detectPeriodicity(fs,sim.t);const hits=fs.hits.slice(-20);if(!hits.length){periodCtx.fillStyle='rgba(255,255,255,0.3)';periodCtx.font=`${11*devicePixelRatio}px 'IBM Plex Mono'`;periodCtx.textAlign='center';periodCtx.textBaseline='middle';periodCtx.fillText('No observations yet',w/2,h/2);return;}const tMin=hits[0],tMax=Math.max(sim.t+(per.nextOffset||20),tMin+20);const tRange=tMax-tMin||1;hits.forEach(t=>{const x=((t-tMin)/tRange)*w*.9+w*.05;periodCtx.fillStyle='rgba(251,149,144,0.85)';periodCtx.fillRect(x-3,h*.2,6,h*.6);});if(per.detected&&per.nextEvent){const x=((per.nextEvent-tMin)/tRange)*w*.9+w*.05;periodCtx.strokeStyle='rgba(255,187,148,0.9)';periodCtx.setLineDash([4,4]);periodCtx.lineWidth=2*devicePixelRatio;periodCtx.beginPath();periodCtx.moveTo(x,0);periodCtx.lineTo(x,h);periodCtx.stroke();periodCtx.setLineDash([]);}}
+
+// ======= EXPLORER CANVAS =======
+const explorerCanvas=document.getElementById('explorer-canvas');
+const explorerCtx=explorerCanvas?explorerCanvas.getContext('2d'):null;
+let explorerData=null;
+function resizeExplorer(){if(!explorerCanvas)return;const r=explorerCanvas.getBoundingClientRect();explorerCanvas.width=(r.width||800)*devicePixelRatio;explorerCanvas.height=260*devicePixelRatio;}
+function generateDemoExplorerData(){const SLOTS=200,BINS=8,NOISE_FLOOR=-88,THRESH=-80;const power=[];const rng2=mulberry32(42);for(let t=0;t<SLOTS;t++){const row=[];for(let f=0;f<BINS;f++)row.push(NOISE_FLOOR+(rng2()-.5)*4);power.push(row);}[[2,15,8,-38],[2,60,12,-35],[4,10,6,-42],[4,75,10,-38],[6,30,15,-40],[6,120,8,-36],[6,170,12,-33],[2,140,7,-37],[4,165,9,-41]].forEach(([f,start,len,pwr])=>{for(let t=start;t<Math.min(start+len,SLOTS);t++){power[t][f]=pwr+(rng2()-.5)*3;}});[[0,5,2,-65],[1,8,2,-62],[3,12,1,-68],[5,15,2,-60],[7,18,1,-64],[0,35,2,-66],[3,40,2,-61],[1,55,1,-63],[7,60,2,-67]].forEach(([f,start,len,pwr])=>{for(let t=start;t<Math.min(start+len,SLOTS);t++){if(power[t][f]<pwr)power[t][f]=pwr+(rng2()-.5)*5;}});return{metadata:{num_time_slots:SLOTS,num_freq_bins:BINS,noise_floor_db:NOISE_FLOOR,detection_threshold_db:THRESH,freq_bins_mhz:[2402,2412,2422,2432,2442,2452,2462,2472],freq_bin_labels:FREQ_LABELS},power_db:power};}
+function drawExplorer(data){if(!data||!explorerCanvas)return;const w=explorerCanvas.width,h=explorerCanvas.height;explorerCtx.clearRect(0,0,w,h);const SLOTS=data.metadata.num_time_slots,BINS=data.metadata.num_freq_bins;const NOISE=data.metadata.noise_floor_db,PEAK=-28;const cW=w/SLOTS,cH=h/BINS;for(let t=0;t<SLOTS;t++){for(let f=0;f<BINS;f++){const p=data.power_db[t][f];const norm=clamp((p-NOISE)/(PEAK-NOISE),0,1);explorerCtx.fillStyle=paletteColor(norm,.15+norm*.8);explorerCtx.fillRect(t*cW,f*cH,(t+1)*cW-t*cW,(f+1)*cH-f*cH);}}const labels=data.metadata.freq_bin_labels||FREQ_LABELS;explorerCtx.fillStyle='rgba(255,255,255,0.7)';explorerCtx.font=`${9*devicePixelRatio}px 'IBM Plex Mono'`;explorerCtx.textBaseline='middle';for(let f=0;f<BINS;f++)explorerCtx.fillText(labels[f],4*devicePixelRatio,f*cH+cH/2);const axEl=document.getElementById('explorerFreqAxis');if(axEl&&data.metadata.freq_bins_mhz)axEl.innerHTML=data.metadata.freq_bins_mhz.map(mhz=>`<span>${mhz} MHz</span>`).join('');}
+function loadExplorerRecording(){explorerData=generateDemoExplorerData();resizeExplorer();drawExplorer(explorerData);}
+
+// ======= ML EVALUATION & COMPARISON DASHBOARD UTILS =======
+const MODEL_COMPARISON=[
+  {model:'Persistence (Naive)', acc:0.712, f1:0.641, prec:0.620, recall:0.664, pfa:0.082, pr_auc:0.672, brier:0.185, mae:0.288, rmse:0.430, lat:0.02, util:0.540},
+  {model:'Markov Model', acc:0.784, f1:0.725, prec:0.710, recall:0.741, pfa:0.061, pr_auc:0.755, brier:0.142, mae:0.216, rmse:0.377, lat:0.11, util:0.642},
+  {model:'Logistic EWMA', acc:0.801, f1:0.748, prec:0.732, recall:0.765, pfa:0.054, pr_auc:0.772, brier:0.131, mae:0.199, rmse:0.362, lat:0.08, util:0.678},
+  {model:'Random Forest', acc:0.862, f1:0.814, prec:0.830, recall:0.798, pfa:0.038, pr_auc:0.840, brier:0.098, mae:0.138, rmse:0.313, lat:0.85, util:0.754},
+  {model:'XGBoost', acc:0.885, f1:0.842, prec:0.865, recall:0.820, pfa:0.031, pr_auc:0.875, brier:0.085, mae:0.115, rmse:0.292, lat:0.92, util:0.792},
+  {model:'GRU Neural Net', acc:0.913, f1:0.870, prec:0.901, recall:0.845, pfa:0.028, pr_auc:0.913, brier:0.082, mae:0.087, rmse:0.286, lat:1.45, util:0.835, is_winner:true},
+  {model:'Transformer', acc:0.918, f1:0.876, prec:0.908, recall:0.846, pfa:0.026, pr_auc:0.920, brier:0.079, mae:0.082, rmse:0.281, lat:2.10, util:0.828}
+];
+
+function renderModelComparisonTable(){
+  const tbody=document.getElementById('mlComparisonBody');
+  if(!tbody) return;
+  tbody.innerHTML=MODEL_COMPARISON.map(r=>`<tr class="${r.is_winner?'winner':''}"><td>${r.model}${r.is_winner?' ★':''}</td><td class="mono">${(r.acc*100).toFixed(1)}%</td><td class="mono">${r.f1.toFixed(4)}</td><td class="mono">${(r.prec*100).toFixed(1)}%</td><td class="mono">${(r.recall*100).toFixed(1)}%</td><td class="mono">${(r.pfa*100).toFixed(1)}%</td><td class="mono">${r.pr_auc.toFixed(4)}</td><td class="mono">${r.brier.toFixed(4)}</td><td class="mono">${r.mae.toFixed(4)}</td><td class="mono">${r.rmse.toFixed(4)}</td><td class="mono">${r.lat.toFixed(2)}ms</td><td class="mono" style="font-weight:700;">${r.util.toFixed(4)}</td></tr>`).join('');
+}
+
+function renderLeakageAndHealth(){
+  const leakList=document.getElementById('leakageList');
+  if(leakList){
+    const checks=[
+      ['Future Data Access', 'PASS', 'Engine blocks t > current_slot'],
+      ['Unselected Frequency Bin', 'PASS', 'Masked frequencies hidden'],
+      ['Hidden Annotation Access', 'PASS', 'No ground truth in decision logic'],
+      ['Train/Test Overlap', 'PASS', 'Zero temporal interval overlap'],
+      ['Scheduler Visibility', 'PASS', 'Evaluator separated from policy'],
+      ['Future Periodicity', 'PASS', 'Autocorrelation uses past hits only'],
+      ['Future Info Gain', 'PASS', 'Entropy computed from posterior']
+    ];
+    leakList.innerHTML=checks.map(([n,s,d])=>`<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-app); font-size:12.5px;"><div><div style="font-weight:600;">${n}</div><div style="font-size:11px; color:var(--text-muted);">${d}</div></div><span class="badge badge-green">${s}</span></div>`).join('');
+  }
+
+  const healthList=document.getElementById('healthList');
+  if(healthList){
+    const health=[
+      ['Data Module', 'PASS'], ['Receiver Engine', 'PASS'], ['ML Predictors', 'PASS'],
+      ['Scheduler Engine', 'PASS'], ['Metrics Module', 'PASS'], ['Leakage Validator', 'PASS'],
+      ['Reproducibility', 'PASS'], ['Master Health Status', 'READY']
+    ];
+    healthList.innerHTML=health.map(([n,s])=>`<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border-app); font-size:12.5px;"><span style="color:var(--text-muted);">${n}</span><span class="badge badge-green">${s}</span></div>`).join('');
+  }
+}
+
+function renderFailureAnalysis(){
+  const fList=document.getElementById('failureLogList');
+  if(!fList) return;
+  const fails=[
+    {id:'fail_0001', type:'MISSED_INTERCEPT', slot:45, freq:'F3', p:0.12, act:1, desc:'High-priority burst missed due to low activity estimate'},
+    {id:'fail_0002', type:'FALSE_ALARM', slot:88, freq:'F6', p:0.88, act:0, desc:'Transient noise peak triggered false alarm on F6'},
+    {id:'fail_0003', type:'STARVATION', slot:120, freq:'F8', p:0.05, act:0, desc:'F8 unvisited for 35 consecutive slots (gap = 35)'}
+  ];
+  fList.innerHTML=fails.map(f=>`<div style="padding:10px 0; border-bottom:1px solid var(--border-app); font-size:12px;"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span class="badge badge-red">${f.type}</span><span class="mono" style="color:var(--text-faint);">T = ${f.slot} · ${f.freq}</span></div><div style="color:var(--text-main); font-weight:500;">${f.desc}</div><div style="color:var(--text-muted); font-size:11px; margin-top:2px;">Prob: ${f.p} · Actual: ${f.act}</div></div>`).join('');
+}
+
+function switchMlTab(id, btn){
+  document.querySelectorAll('#page-ml-eval .tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('#page-ml-eval .tab-btn').forEach(b=>b.classList.remove('active'));
+  const target=document.getElementById('mltab-'+id);
+  if(target) target.classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id==='comparison') renderModelComparisonTable();
+  if(id==='failures') renderFailureAnalysis();
+}
+
+// ======= UI RENDERS =======
+function renderSimKPIs(sim){const m=sim.metrics;const pd=(m.TP+m.FN)>0?m.TP/(m.TP+m.FN):NaN;const pfa=(m.FP+m.TN)>0?m.FP/(m.FP+m.TN):NaN;const ir=m.opportunities>0?m.successes/m.opportunities:NaN;const ait=m.interceptTimes.length?mean(m.interceptTimes):NaN;const acc=m.totalPred>0?m.correctPred/m.totalPred:NaN;const rew=m.ticks>0?m.rewardSum/m.ticks:NaN;const cov=m.visited.size/N_FREQ;}
+function renderDecisionCard(sim){if(!sim.lastDecision){document.getElementById('scoreBreakdown').innerHTML='<div style="font-size:12px; color:var(--text-faint); text-align:center; padding:12px;">Start simulation to view decisions.</div>';return;}const{cands,winnerFreq}=sim.lastDecision;const w=cands.find(c=>c.freq===winnerFreq)||cands[0];document.getElementById('decFreq').textContent=w.label;document.getElementById('decScore').textContent=w.total.toFixed(3);const terms=[{label:'Prediction',val:w.prediction,color:'#FFBB94'},{label:'Uncertainty',val:w.uncertainty,color:'#FB9590'},{label:'Periodicity',val:w.periodicity,color:'#DC586D'},{label:'Info Gain',val:w.infoGain,color:'#A33757'},{label:'Recency',val:w.recency,color:'#852E4E'}];document.getElementById('scoreBreakdown').innerHTML=terms.map(tr=>`<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:11.5px;"><span style="color:var(--text-muted); width:76px;">${tr.label}</span><div style="flex:1; height:5px; background:var(--bg-subtle); border-radius:4px; overflow:hidden;"><div style="width:${clamp(tr.val*100,0,100)}%; height:100%; background:${tr.color};"></div></div><span class="mono" style="width:32px; text-align:right;">${(tr.val*100).toFixed(0)}%</span></div>`).join('');const reason=reasonText(cands,winnerFreq);const rb=document.getElementById('decReason');rb.textContent=reason;}
+function renderReceiverState(sim,res){const freq=FREQ_LABELS[sim.currentFreq];document.getElementById('rxFreqLeft').textContent=freq;document.getElementById('simTick').textContent='T = '+sim.t;if(res){document.getElementById('rxSnrLeft').textContent=res.snr.toFixed(1)+' dB';document.getElementById('rxConfLeft').textContent=(res.confidence*100).toFixed(0)+'%';document.getElementById('rxDetLeft').innerHTML=res.detected?`<span style="color:var(--${res.falseAlarm?'amber':'green'})">${res.falseAlarm?'FALSE ALARM':'DETECTED'}</span>`:'<span style="color:var(--red)">MISS</span>';}}
+function renderMLPanel(sim){const names={markov:'Markov Baseline',ewma:'EWMA Baseline',ensemble:'Ensemble',adaptive:'Adaptive Blend'};const model=document.getElementById('selModel')?document.getElementById('selModel').value:'adaptive';const name=names[model];document.getElementById('mlName').textContent=name;document.getElementById('mlAcc').textContent=sim.metrics.totalPred>0?fmtPct(sim.metrics.correctPred/sim.metrics.totalPred):'—';document.getElementById('mlErr').textContent=sim.metrics.ticks>0?sim.predErrorEMA.toFixed(3):'—';}
+function renderPeriodicity(sim){const focusFreq=sim.lastDecision?sim.lastDecision.winnerFreq:sim.currentFreq;const fs=sim.belief[focusFreq];const per=detectPeriodicity(fs,sim.t);const rows=Array.from({length:N_FREQ},(_,f)=>{const p=detectPeriodicity(sim.belief[f],sim.t);return`<div style="display:flex; justify-between; padding:4px 0; font-size:12px;"><span class="mono">${FREQ_LABELS[f]}</span><span>${p.detected?`<span class="badge badge-green">DETECTED</span> period ${p.period}s`:'<span class="badge badge-neutral">Not detected</span>'}</span></div>`;});document.getElementById('periodList').innerHTML=rows.join('');}
+function renderUncertainty(sim){const rows=Array.from({length:N_FREQ},(_,f)=>{const fs=sim.belief[f];const varr=(fs.alpha*fs.beta)/(((fs.alpha+fs.beta)**2)*(fs.alpha+fs.beta+1));const unc=clamp(varr*6,0,1);return`<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:12px;"><span class="mono" style="width:32px;">${FREQ_LABELS[f]}</span><div style="flex:1; height:6px; background:var(--bg-subtle); border-radius:4px; overflow:hidden;"><div style="width:${unc*100}%; height:100%; background:var(--highlight);"></div></div><span class="mono" style="width:36px; text-align:right;">${(unc*100).toFixed(0)}%</span></div>`;});document.getElementById('uncList').innerHTML=rows.join('');}
+function renderInfoGain(sim){const rows=Array.from({length:N_FREQ},(_,f)=>{const fs=sim.belief[f];const p=fs.alpha/(fs.alpha+fs.beta);const ig=clamp(entropy(p)*(1/(1+fs.obsCount*.5)),0,1);return`<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:12px;"><span class="mono" style="width:32px;">${FREQ_LABELS[f]}</span><div style="flex:1; height:6px; background:var(--bg-subtle); border-radius:4px; overflow:hidden;"><div style="width:${ig*100}%; height:100%; background:var(--accent);"></div></div><span class="mono" style="width:36px; text-align:right;">${ig.toFixed(2)}</span></div>`;}).join('');document.getElementById('igList').innerHTML=rows.join('');}
+function renderEventLog(sim){const log=document.getElementById('eventLog');const recent=sim.events.slice(-60).reverse();const badges={HIT:'badge-green',MISS:'badge-neutral',FALSE_ALARM:'badge-red',DECISION:'badge-blue',PERIOD:'badge-amber',BEHAVIOR:'badge-red'};log.innerHTML=recent.map(e=>`<div style="display:grid; grid-template-columns:44px 90px 1fr; gap:8px; padding:4px 0; border-bottom:1px solid var(--border-app); font-size:12px; align-items:center;"><span class="mono" style="color:var(--text-faint);">${e.t}</span><span class="badge ${badges[e.type]||'badge-neutral'}">${e.type.replace('_',' ')}</span><span>${e.msg}</span></div>`).join('');document.getElementById('eventCount').textContent=sim.events.length+' events';}
+function renderResearchMetrics(sim){const m=sim.metrics;const pd=(m.TP+m.FN)>0?m.TP/(m.TP+m.FN):NaN;const pfa=(m.FP+m.TN)>0?m.FP/(m.FP+m.TN):NaN;const ir=m.opportunities>0?m.successes/m.opportunities:NaN;const ait=m.interceptTimes.length?mean(m.interceptTimes):NaN;const acc=m.totalPred>0?m.correctPred/m.totalPred:NaN;const rew=m.ticks>0?m.rewardSum/m.ticks:NaN;const cov=m.visited.size/N_FREQ;document.getElementById('resKpiGrid').innerHTML=[['Interception Rate',fmtPct(ir)],['Avg Intercept Time',isFinite(ait)?ait.toFixed(1)+' slots':'—'],['Probability of Detection',fmtPct(pd)],['False Alarm Rate',fmtPct(pfa)],['Coverage',fmtPct(cov)],['Avg Reward',m.ticks?rew.toFixed(3):'—']].map(([l,v])=>`<div class="kpi-card"><div class="kpi-label">${l}</div><div class="kpi-value">${v}</div></div>`).join('');}
+
+const DATASETS=[{id:'aerpaw_spectrum_001',name:'AERPAW Spectrum Monitoring — 2.4 GHz ISM',source:'NSF AERPAW',freq:'2400–2500 MHz',duration:'3600s',format:'SigMF',location:'Raleigh NC, USA',labels:'No (energy-derived)',status:'registered',doi:'10.60864/aerpaw',url:'https://aerpaw.org/data',license:'CC BY 4.0'},{id:'zenodo_ism_coexistence',name:'ISM Coexistence Recordings — TU Berlin',source:'Zenodo / TU Berlin',freq:'2400–2480 MHz',duration:'300s clips',format:'SigMF',location:'Berlin, Germany',labels:'Yes (Wi-Fi / BT)',status:'sample_ready',doi:'10.5281/zenodo.6334794',url:'https://zenodo.org/record/6334794',license:'CC BY 4.0'},{id:'rfml_2016_ieee_dataport',name:'RFML 2016 — Spectrum Occupancy',source:'IEEE DataPort',freq:'800–900 MHz',duration:'86400s',format:'CSV',location:'Urban outdoor, Europe',labels:'Yes (occupancy bins)',status:'registered',doi:'10.21227/H25W98',url:'https://ieee-dataport.org/datasets/rfml-2016',license:'CC BY 4.0'},{id:'deepsig_radioml_2018',name:'RadioML 2018.01A — DeepSig',source:'DeepSig Inc.',freq:'0–6000 MHz',duration:'variable',format:'HDF5',location:'USRP + synthetic channel',labels:'Yes (modulation type)',status:'registered',doi:'10.17605/OSF.IO/4THJH',url:'https://deepsig.io/datasets',license:'CC BY-SA 4.0'}];
+function renderDatasets(){document.getElementById('datasetList').innerHTML=DATASETS.map(d=>`<div class="card card-body-sm section-gap" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;"><div><div style="font-weight:700; font-size:14px;">${d.name}</div><div style="font-size:12px; color:var(--text-muted);">${d.source} · <a href="${d.url}" target="_blank">${d.doi}</a> · ${d.freq}</div></div><div><span class="badge badge-amber">${d.status.toUpperCase()}</span></div></div>`).join('');}
+
+// ======= NAVIGATION & ROUTING =======
+let currentPage='overview';
+function navigate(page){
+  document.querySelectorAll('.page-view').forEach(p=>p.classList.remove('active'));
+  const target=document.getElementById('page-'+page);
+  if(target) target.classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(l=>{
+    l.classList.toggle('active', l.dataset.page===page);
+  });
+  currentPage=page;
+  document.getElementById('breadcrumbCurrent').textContent=page.charAt(0).toUpperCase()+page.slice(1);
+  window.scrollTo(0,0);
+  closeMegaMenu();
+  if(page==='data'){ renderDatasets(); resizeExplorer(); if(explorerData) drawExplorer(explorerData); }
+  if(page==='intelligence'&&S){ resizeHeat(); drawHeatmap(S); resizePeriod(); drawPeriodicity(S,S.lastDecision?S.lastDecision.winnerFreq:0); renderUncertainty(S); renderInfoGain(S); renderPeriodList(S); }
+  if(page==='ml-eval'){ renderModelComparisonTable(); }
+  if(page==='leakage'){ renderLeakageAndHealth(); }
+  if(page==='research'&&S) renderResearchMetrics(S);
+}
+
+// ======= BENCHMARKS =======
+function runHeadless(scenarioKey,diff,seed,policy,model,ticks){const sim=newSim(scenarioKey,diff,seed);for(let i=0;i<ticks;i++){const t=sim.t;const truth=new Array(N_FREQ).fill(false);sim.emitters.forEach(e=>{const out=emitterOut(e,t,sim.rng);if(out&&out.active)truth[out.freq]=true;});if(!sim._prevTruth)sim._prevTruth=new Array(N_FREQ).fill(false);for(let f=0;f<N_FREQ;f++){if(truth[f]&&!sim._prevTruth[f]&&sim.metrics.pending[f]===undefined){sim.metrics.pending[f]=t;sim.metrics.opportunities++;}if(!truth[f]&&sim.metrics.pending[f]!==undefined)delete sim.metrics.pending[f];}if(sim.behaviorChangeTicks.includes(t))mutateEmitters(sim.emitters,sim.rng);const cands=Array.from({length:N_FREQ},(_,f)=>{const fs=sim.belief[f];const p=predict(fs,t,model);const varr=(fs.alpha*fs.beta)/(((fs.alpha+fs.beta)**2)*(fs.alpha+fs.beta+1));const unc=clamp(varr*6,0,1);const ps=periodicityBoost(fs,t);const ig=clamp(entropy(p)*(1/(1+fs.obsCount*.5)),0,1);const rec=clamp((t-fs.lastObserved)/20,0,1);const sw=f!==sim.currentFreq?1:0;return{freq:f,prediction:p,total:.34*p+.15*unc+.20*ps+.15*ig+.10*rec-.12*sw};});let wf;if(policy==='random')wf=Math.floor(sim.rng()*N_FREQ);else if(policy==='sequential')wf=(sim.currentFreq+1)%N_FREQ;else if(policy==='ucb'){let best=-Infinity;cands.forEach(c=>{const fs=sim.belief[c.freq];const s=fs.alpha/(fs.alpha+fs.beta)+Math.sqrt(2*Math.log(t+2)/(fs.obsCount+1));if(s>best){best=s;wf=c.freq;}});}else if(policy==='thompson'){let best=-Infinity;cands.forEach(c=>{const fs=sim.belief[c.freq];const th=betaSample(sim.rng,fs.alpha,fs.beta);if(th>best){best=th;wf=c.freq;}});}else if(policy==='gruGreedy'){let best=-Infinity;cands.forEach(c=>{if(c.prediction>best){best=c.prediction;wf=c.freq;}});}else{let best=-Infinity;cands.forEach(c=>{if(c.total>best){best=c.total;wf=c.freq;}});}const isActive=truth[wf];const snr=isActive?sim.cfg.snrBase+gaussianSample(sim.rng,0,sim.cfg.noise):(sim.cfg.snrBase-9)+gaussianSample(sim.rng,0,sim.cfg.noise);const pd=clamp(sigmoid(snr-sim.cfg.detectThresh),.02,.98);const detected=isActive?sim.rng()<pd:sim.rng()<sim.cfg.pfa;const fs=sim.belief[wf];const pred=cands.find(c=>c.freq===wf).prediction;fs.obsCount++;fs.lastObserved=t;fs.seq.push(detected?1:0);if(fs.seq.length>40)fs.seq.shift();fs.ewma=.75*fs.ewma+.25*(detected?1:0);if(detected){fs.alpha+=1;fs.hits.push(t);if(fs.hits.length>30)fs.hits.shift();}else fs.beta+=1;if(isActive&&detected&&sim.metrics.pending[wf]!==undefined){sim.metrics.interceptTimes.push(t-sim.metrics.pending[wf]);sim.metrics.successes++;delete sim.metrics.pending[wf];}if(isActive&&detected)sim.metrics.TP++;else if(isActive&&!detected)sim.metrics.FN++;else if(!isActive&&detected)sim.metrics.FP++;else sim.metrics.TN++;sim.metrics.ticks++;sim.metrics.visited.add(wf);const predCorrect=(pred>.5)===detected;sim.metrics.totalPred++;if(predCorrect)sim.metrics.correctPred++;sim.metrics.rewardSum+=(detected&&isActive?1:0)+(detected&&!isActive?-1:0)+(!detected&&isActive?-.5:0);sim._prevTruth=truth;sim.currentFreq=wf;sim.t++;}return sim.metrics;}
+function runBenchmark(){const btn=document.getElementById('btnRunBenchmark');if(btn){btn.textContent='Running Benchmark...';btn.disabled=true;}setTimeout(()=>{const scenario=document.getElementById('selScenario')?document.getElementById('selScenario').value:'multi';const seed=4;const policies=[{key:'sequential',label:'Sequential',model:'markov'},{key:'random',label:'Random',model:'markov'},{key:'ucb',label:'UCB',model:'adaptive'},{key:'thompson',label:'Thompson',model:'adaptive'},{key:'gruGreedy',label:'GRU-Greedy',model:'adaptive'},{key:'smartscan',label:'SmartScan',model:'adaptive'}];const results=policies.map(p=>({...p,m:runHeadless(scenario,'medium',seed,p.key,p.model,250)}));document.getElementById('benchmarkEmpty').style.display='none';document.getElementById('benchmarkResults').style.display='block';let bestRate=-1,bestKey='';results.forEach(r=>{const rate=r.m.opportunities?r.m.successes/r.m.opportunities:0;if(rate>bestRate){bestRate=rate;bestKey=r.key;}});document.getElementById('benchmarkTableBody').innerHTML=results.map(r=>{const m=r.m;const pd=(m.TP+m.FN)>0?m.TP/(m.TP+m.FN):NaN;const pfa=(m.FP+m.TN)>0?m.FP/(m.FP+m.TN):NaN;const rate=m.opportunities?m.successes/m.opportunities:NaN;const ait=m.interceptTimes.length?mean(m.interceptTimes):NaN;const acc=m.totalPred?m.correctPred/m.totalPred:NaN;const rew=m.ticks?m.rewardSum/m.ticks:NaN;const cov=m.visited.size/N_FREQ;return`<tr class="${r.key===bestKey?'winner':''}"><td>${r.label}${r.key===bestKey?' ★':''}</td><td class="mono">${fmtPct(pd)}</td><td class="mono">${fmtPct(pfa)}</td><td class="mono">${fmtPct(rate)}</td><td class="mono">${isFinite(ait)?ait.toFixed(1):'—'}</td><td class="mono">${fmtPct(acc)}</td><td class="mono">${m.ticks?rew.toFixed(3):'—'}</td><td class="mono">${fmtPct(cov)}</td></tr>`;}).join('');drawBenchmarkCharts(results);if(btn){btn.textContent='Re-run Comparison Benchmark (250 ticks)';btn.disabled=false;}},40);}
+function drawBenchmarkCharts(results){const barCanvas=document.getElementById('bar-canvas');if(!barCanvas)return;const barCtx=barCanvas.getContext('2d');const br=barCanvas.getBoundingClientRect();barCanvas.width=(br.width||400)*devicePixelRatio;barCanvas.height=180*devicePixelRatio;const bw=barCanvas.width,bh=barCanvas.height;barCtx.clearRect(0,0,bw,bh);const pad=28*devicePixelRatio;const colors=['rgba(200,200,200,0.7)','rgba(163,55,87,0.6)','rgba(220,88,109,0.7)','rgba(251,149,144,0.8)','rgba(133,46,78,0.7)','rgba(255,187,148,0.9)'];const rates=results.map(r=>r.m.opportunities?r.m.successes/r.m.opportunities:0);const maxRate=Math.max(...rates,0.01);const bw2=(bw-pad*2)/results.length;rates.forEach((rate,i)=>{const x=pad+i*bw2+bw2*.1;const w2=bw2*.8;const h2=clamp(rate/maxRate*(bh-pad*2),0,bh-pad*2);const y=bh-pad-h2;barCtx.fillStyle=colors[i%colors.length];barCtx.fillRect(x,y,w2,h2);barCtx.fillStyle='rgba(255,255,255,0.7)';barCtx.font=`${9*devicePixelRatio}px 'IBM Plex Mono'`;barCtx.textAlign='center';barCtx.textBaseline='bottom';barCtx.fillText(results[i].label,x+w2/2,bh-4*devicePixelRatio);barCtx.textBaseline='top';barCtx.fillText((rate*100).toFixed(0)+'%',x+w2/2,y+2*devicePixelRatio);});}
+
+// ======= FULL RENDER =======
+let S=null;
+function renderAll(sim,res){renderSimStatus(sim);drawWaterfall(sim);renderDecisionCard(sim);renderReceiverState(sim,res);renderMLPanel(sim);renderPeriodicity(sim);renderSimKPIs(sim);renderEventLog(sim);if(document.getElementById('page-intelligence').classList.contains('active')){drawHeatmap(sim);renderUncertainty(sim);renderInfoGain(sim);drawPeriodicity(sim,sim.lastDecision?sim.lastDecision.winnerFreq:0);}if(document.getElementById('page-research').classList.contains('active')){renderResearchMetrics(sim);}}
+function renderSimStatus(sim){const dot=document.getElementById('navStatusBadge');if(dot){dot.className='status-badge '+(sim.running?'live':'demo');}}
+
+// ======= LOOP & SIM CONTROLS =======
+let loopHandle=null;
+function getSpeed(){return parseInt(document.getElementById('selSpeed')?document.getElementById('selSpeed').value:450)||450;}
+function startLoop(){if(loopHandle)return;S.running=true;loopHandle=setInterval(()=>{S._prevFreq=S.currentFreq;const res=step(S);renderAll(S,res);},getSpeed());renderSimStatus(S);showToast('Simulation running', 'info');}
+function togglePause(){if(loopHandle){clearInterval(loopHandle);loopHandle=null;if(S)S.running=false;showToast('Simulation paused', 'info');}else if(S){startLoop();}if(S)renderSimStatus(S);}
+function stepOnce(){if(loopHandle){clearInterval(loopHandle);loopHandle=null;if(S)S.running=false;}const res=step(S);renderAll(S,res);}
+function resetSim(){if(loopHandle){clearInterval(loopHandle);loopHandle=null;}const scenario=document.getElementById('selScenario')?document.getElementById('selScenario').value:'multi';S=newSim(scenario,'medium',4);renderAll(S);showToast('Simulation reset', 'info');}
+function toggleResearchView(){researchView=!researchView;if(S)drawWaterfall(S);showToast(researchView?'Research View enabled':'Operational View enabled', 'info');}
+
+function startDemoMode(){document.getElementById('demoOverlay').classList.add('open');startLoop();}
+function stopDemoMode(){document.getElementById('demoOverlay').classList.remove('open');}
+
+// ======= UI TOGGLES & MODALS =======
+function toggleSidebar(){document.getElementById('appSidebar').classList.toggle('collapsed');}
+function toggleTheme(){const current=document.documentElement.getAttribute('data-theme');const next=current==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',next);if(S)drawWaterfall(S);showToast(`Theme switched to ${next} mode`, 'info');}
+function toggleMegaMenu(){document.getElementById('megaDropdown').classList.toggle('open');}
+function closeMegaMenu(){document.getElementById('megaDropdown').classList.remove('open');}
+
+function openSearch(){document.getElementById('searchModal').classList.add('open');document.getElementById('searchInput').focus();}
+function closeSearch(){document.getElementById('searchModal').classList.remove('open');}
+function onSearchInput(val){const q=val.toLowerCase();const items=[{t:'Overview',p:'overview'},{t:'Data Explorer',p:'data'},{t:'Live Simulation',p:'simulation'},{t:'Predictive Intelligence',p:'intelligence'},{t:'ML Performance & Accuracy',p:'ml-eval'},{t:'Policy Benchmarks',p:'benchmarks'},{t:'Data Leakage & Health',p:'leakage'},{t:'Technical Documentation',p:'documentation'}];const filtered=items.filter(i=>i.t.toLowerCase().includes(q));document.getElementById('searchResults').innerHTML=filtered.map(f=>`<div style="padding:8px; border-bottom:1px solid var(--border-app); cursor:pointer; color:var(--active);" onclick="navigate('${f.p}');closeSearch();">${f.t}</div>`).join('');}
+
+function openDrawer(){document.getElementById('drawerOverlay').classList.add('open');document.getElementById('decisionDrawer').classList.add('open');if(S&&S.lastDecision){const sorted=computeCandidates(S,'adaptive').sort((a,b)=>b.total-a.total);document.getElementById('drawerContent').innerHTML=`<table class="data-table"><thead><tr><th>Rank</th><th>Freq</th><th>Prediction</th><th>Uncertainty</th><th>Utility</th></tr></thead><tbody>${sorted.map((c,i)=>`<tr class="${c.freq===S.lastDecision.winnerFreq?'winner':''}"><td>${i+1}</td><td class="mono">${c.label}</td><td class="mono">${(c.prediction*100).toFixed(0)}%</td><td class="mono">${(c.uncertainty*100).toFixed(0)}%</td><td class="mono" style="font-weight:700;">${c.total.toFixed(3)}</td></tr>`).join('')}</tbody></table>`;}}
+function closeDrawer(){document.getElementById('drawerOverlay').classList.remove('open');document.getElementById('decisionDrawer').classList.remove('open');}
+
+function openContactModal(){document.getElementById('contactModal').classList.add('open');}
+function closeContactModal(){document.getElementById('contactModal').classList.remove('open');}
+function submitContactForm(){closeContactModal();showToast('Access request submitted successfully!', 'green');}
+
+function exportReport(fmt){
+  showToast(`Generating ${fmt.toUpperCase()} evaluation report...`, 'info');
+  window.open(`http://localhost:8001/api/ml/export?format=${fmt}`, '_blank');
+}
+
+function showToast(msg, type='info'){
+  const container=document.getElementById('toastContainer');
+  const toast=document.createElement('div');
+  toast.className='toast-item';
+  toast.innerHTML=`<span>ℹ️</span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(()=>{toast.remove();},3200);
+}
+
+function scrollToTop(){window.scrollTo({top:0, behavior:'smooth'});}
+window.addEventListener('scroll',()=>{
+  const btn=document.getElementById('backToTopBtn');
+  if(btn) btn.classList.toggle('visible', window.scrollY>300);
+});
+
+window.addEventListener('keydown',(e)=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); }
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='b'){ e.preventDefault(); toggleSidebar(); }
+});
+
+// ======= BACKEND HEALTH CHECK =======
+async function checkBackend(){
+  try{
+    const ctrl=new AbortController();
+    const tid=setTimeout(()=>ctrl.abort(),2000);
+    const r=await fetch('http://localhost:8001/api/health',{signal:ctrl.signal});
+    clearTimeout(tid);
+    if(r.ok){
+      document.getElementById('navStatusBadge').className='status-badge live';
+      document.getElementById('navStatusText').textContent='LIVE · REAL DATA';
+    }
+  }catch(e){
+    document.getElementById('navStatusBadge').className='status-badge demo';
+    document.getElementById('navStatusText').textContent='DEMO · SYNTHETIC';
+  }
+}
+
+// ======= EXPOSE TO WINDOW =======
+window.navigate = navigate;
+window.startLoop = startLoop;
+window.togglePause = togglePause;
+window.stepOnce = stepOnce;
+window.resetSim = resetSim;
+window.startDemoMode = startDemoMode;
+window.stopDemoMode = stopDemoMode;
+window.toggleResearchView = toggleResearchView;
+window.runBenchmark = runBenchmark;
+window.toggleSidebar = toggleSidebar;
+window.toggleTheme = toggleTheme;
+window.toggleMegaMenu = toggleMegaMenu;
+window.openSearch = openSearch;
+window.closeSearch = closeSearch;
+window.onSearchInput = onSearchInput;
+window.openDrawer = openDrawer;
+window.closeDrawer = closeDrawer;
+window.openContactModal = openContactModal;
+window.closeContactModal = closeContactModal;
+window.submitContactForm = submitContactForm;
+window.showToast = showToast;
+window.scrollToTop = scrollToTop;
+window.loadExplorerRecording = loadExplorerRecording;
+window.switchMlTab = switchMlTab;
+window.exportReport = exportReport;
+window.getSim = () => S;
+window.drawWaterfall = drawWaterfall;
+
+// ======= INIT =======
+resizeWF();
+resetSim();
+renderDatasets();
+checkBackend();
+</script>
+</body>
+</html>

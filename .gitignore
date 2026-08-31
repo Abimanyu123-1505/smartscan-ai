@@ -1,0 +1,27 @@
+# Environment variables and secrets
+.env
+*.env
+.env.*
+backend/.env
+backend/storage/
+
+# Python cache & build
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node dependencies
+node_modules/
+dist/
+.vite/
+
+# Large RF dataset binaries (downloaded via scripts/download_data.py)
+smartscan/data/raw/
+smartscan-ai/data/raw/
+*.sigmf-data
+*.bin
+*.h5
+*.hdf5
