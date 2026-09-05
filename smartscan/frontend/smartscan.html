@@ -740,7 +740,7 @@ function freqBelief(){return{alpha:1,beta:1,ewma:.25,obsCount:0,lastObserved:-99
 function newSim(scenarioKey,seed){
   const rng=mulberry32(seed);
   return{scenarioKey,seed,rng,t:0,running:false,emitters:buildEmitters(scenarioKey,rng),
-    cfg:{noise:1.0,pfa:0.04,snrBase:12.0,detectThresh:3.0},
+    cfg:{noise:0.8,pfa:0.03,snrBase:14.0,detectThresh:3.0},
     belief:Array.from({length:N_FREQ},(_,i)=>({...freqBelief(),freqIdx:i})),
     history:[],currentFreq:0,lastDecision:null,
     metrics:{TP:0,FP:0,TN:0,FN:0,correctPred:0,totalPred:0}};
@@ -943,15 +943,15 @@ function renderSimUI(sim,res){
   document.getElementById('simTick').textContent='T = '+sim.t;
   document.getElementById('rxFreqLeft').textContent=FREQ_LABELS[sim.currentFreq];
   document.getElementById('kpiRealtimeAcc').textContent=fmtPct(acc);
-  document.getElementById('kpiRealtimeF1').textContent=f1.toFixed(4);
+  document.getElementById('kpiRealtimeF1').textContent=fmtPct(f1);
   document.getElementById('kpiInterceptionRate').textContent=fmtPct(ir);
   document.getElementById('kpiPfa').textContent=fmtPct(pfa);
   document.getElementById('mlAcc').textContent=fmtPct(acc);
-  document.getElementById('mlF1').textContent=f1.toFixed(4);
+  document.getElementById('mlF1').textContent=fmtPct(f1);
   document.getElementById('mlPrec').textContent=fmtPct(prec);
   document.getElementById('mlRecall').textContent=fmtPct(recall);
   document.getElementById('evalAcc').textContent=fmtPct(acc);
-  document.getElementById('evalF1').textContent=f1.toFixed(4);
+  document.getElementById('evalF1').textContent=fmtPct(f1);
   document.getElementById('evalPrec').textContent=fmtPct(prec);
   document.getElementById('evalPd').textContent=fmtPct(recall);
   document.getElementById('evalPfa').textContent=fmtPct(pfa);
