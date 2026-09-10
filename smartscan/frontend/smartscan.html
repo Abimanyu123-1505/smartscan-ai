@@ -356,9 +356,9 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
     <!-- ================================================= PAGE 3: LIVE SIMULATION ================================================= -->
     <section id="page-simulation" class="page-view">
       <div class="kpi-grid section-gap">
-        <div class="kpi-card"><div class="kpi-label">Realtime Accuracy</div><div class="kpi-value accent" id="kpiRealtimeAcc">—</div><div class="kpi-sub">Correct / Total Predictions</div></div>
+        <div class="kpi-card"><div class="kpi-label">Realtime Accuracy</div><div class="kpi-value accent" id="kpiRealtimeAcc">—</div><div class="kpi-sub">Per-visit: ML predicts vs truth</div></div>
         <div class="kpi-card"><div class="kpi-label">Realtime F1 Score</div><div class="kpi-value" style="color:var(--green);" id="kpiRealtimeF1">—</div><div class="kpi-sub">2·Prec·Rec / (Prec+Rec)</div></div>
-        <div class="kpi-card"><div class="kpi-label">Interception Rate</div><div class="kpi-value" id="kpiInterceptionRate">—</div><div class="kpi-sub">Events Intercepted / Events Occurred</div></div>
+        <div class="kpi-card"><div class="kpi-label">Interception Rate</div><div class="kpi-value" id="kpiInterceptionRate">—</div><div class="kpi-sub">Global: Captured / All Emissions</div></div>
         <div class="kpi-card"><div class="kpi-label">False Alarm Rate (Pfa)</div><div class="kpi-value" id="kpiPfa">—</div><div class="kpi-sub">False Detections / Inactive Slots</div></div>
       </div>
       
@@ -754,10 +754,10 @@ const DATASETS = {
     desc: "Real 2.4 GHz ISM band recording: Wi-Fi 802.11b/g/n packet bursts on Ch3 & Ch6 + Bluetooth frequency hopping across other channels.",
     initEmitters: (rng) => [
       // Real Wi-Fi packet bursts: Poisson packet arrivals, variable burst length (3-12 slots), CSMA backoff
-      { type: 'wifi', freq: 2, arrivalRate: 0.12, burstMin: 4, burstMax: 12, burstRem: 0, power: -38 },
-      { type: 'wifi', freq: 5, arrivalRate: 0.09, burstMin: 3, burstMax: 10, burstRem: 0, power: -41 },
+      { type: 'wifi', freq: 2, arrivalRate: 0.07, burstMin: 3, burstMax: 8, burstRem: 0, power: -42 },
+      { type: 'wifi', freq: 5, arrivalRate: 0.06, burstMin: 2, burstMax: 7, burstRem: 0, power: -45 },
       // Bluetooth AFH: Hopping across pool with dwell 1-3 slots, random hopping order
-      { type: 'bluetooth', pool: [0, 1, 3, 4, 6, 7], curFreq: 0, dwellRem: 0, hopProb: 0.35, power: -60 },
+      { type: 'bluetooth', pool: [0, 1, 3, 4, 6, 7], curFreq: 0, dwellRem: 0, hopProb: 0.20, power: -65 },
       // Periodic beacon (Wi-Fi router DTIM beacon) with slight jitter
       { type: 'beacon', freq: 2, interval: 20, jitter: 2, lastHit: 0, width: 2, power: -35 }
     ]
@@ -778,11 +778,11 @@ const DATASETS = {
     desc: "AERPAW NSF testbed recording: high-definition UAV video telemetry downlink stream on U2 & U5 with periodic RC control pulses on U1.",
     initEmitters: (rng) => [
       // UAV heavy video stream on U2 with video frame packet bursts
-      { type: 'video_stream', freq: 1, duty: 0.55, burstMin: 5, burstMax: 18, burstRem: 0, power: -32 },
+      { type: 'video_stream', freq: 1, duty: 0.28, burstMin: 3, burstMax: 9, burstRem: 0, power: -38 },
       // Secondary telemetry sensor uplink on U4
       { type: 'telemetry', freq: 3, interval: 14, jitter: 3, lastHit: 0, width: 2, power: -45 },
       // RC control pilot pulses on U0 (frequent short pulses)
-      { type: 'rc_control', freq: 0, arrivalRate: 0.28, burstMin: 1, burstMax: 3, burstRem: 0, power: -40 },
+      { type: 'rc_control', freq: 0, arrivalRate: 0.10, burstMin: 1, burstMax: 2, burstRem: 0, power: -46 },
       // Occasional terrestrial LTE-U burst on U6
       { type: 'lte_u', freq: 6, arrivalRate: 0.08, burstMin: 6, burstMax: 15, burstRem: 0, power: -36 }
     ]
@@ -803,11 +803,11 @@ const DATASETS = {
     desc: "IEEE DataPort 24-hour cellular occupancy recording: continuous BCCH beacon carrier on C1 + Poisson voice/data burst traffic on C3, C4, C7.",
     initEmitters: (rng) => [
       // Continuous BCCH beacon carrier on C1 (almost 96% occupancy)
-      { type: 'bcch_beacon', freq: 0, duty: 0.94, power: -30 },
+      { type: 'bcch_beacon', freq: 0, duty: 0.65, power: -44 },
       // Poisson voice/data call channels on C2, C4, C6 with long dwell durations (15-40 slots)
-      { type: 'voice_call', freq: 2, callProb: 0.05, minDur: 15, maxDur: 35, rem: 0, power: -38 },
-      { type: 'voice_call', freq: 4, callProb: 0.06, minDur: 10, maxDur: 30, rem: 0, power: -42 },
-      { type: 'data_burst', freq: 6, arrivalRate: 0.14, minDur: 4, maxDur: 12, rem: 0, power: -35 },
+      { type: 'voice_call', freq: 2, callProb: 0.03, minDur: 10, maxDur: 25, rem: 0, power: -52 },
+      { type: 'voice_call', freq: 4, callProb: 0.04, minDur: 8, maxDur: 20, rem: 0, power: -48 },
+      { type: 'data_burst', freq: 6, arrivalRate: 0.08, minDur: 3, maxDur: 8, rem: 0, power: -50 },
       // Paging spikes on C7
       { type: 'paging', freq: 7, interval: 18, jitter: 2, lastHit: 0, width: 1, power: -32 }
     ]
@@ -828,11 +828,11 @@ const DATASETS = {
     desc: "Agile tactical radar and communications: frequency-hopping carrier with staggered PRI jitter to resist jamming, shifting dynamically.",
     initEmitters: (rng) => [
       // Radar emitter with staggered PRI (staggered intervals: 7, 11, 13, 17) to prevent jamming
-      { type: 'stagger_radar', pool: [1, 3, 5, 7], curIdx: 0, priSeq: [7, 11, 13, 9], priIdx: 0, lastSlot: 0, pulseWidth: 2, power: -28 },
+      { type: 'stagger_radar', pool: [1, 3, 5, 7], curIdx: 0, priSeq: [9, 13, 11, 17], priIdx: 0, lastSlot: 0, pulseWidth: 1, power: -36 },
       // Agile tactical FHSS radio hopping across all 8 channels rapidly
-      { type: 'tactical_hop', pool: [0, 1, 2, 3, 4, 5, 6, 7], curFreq: 2, hopRate: 0.45, dwell: 0, power: -42 },
+      { type: 'tactical_hop', pool: [0, 1, 2, 3, 4, 5, 6, 7], curFreq: 2, hopRate: 0.25, dwell: 0, power: -48 },
       // Jammer / interference bursts
-      { type: 'ecm_burst', freq: 4, arrivalRate: 0.08, burstMin: 3, burstMax: 8, burstRem: 0, power: -33 }
+      { type: 'ecm_burst', freq: 4, arrivalRate: 0.05, burstMin: 2, burstMax: 5, burstRem: 0, power: -40 }
     ]
   }
 };
@@ -958,24 +958,35 @@ function computeEmitterStates(emitters, t, rng) {
   return { truth, powers };
 }
 
-function freqBelief(){return{alpha:1,beta:1,ewma:.25,obsCount:0,lastObserved:-999,hits:[],seq:[]};}
+function freqBelief(){return{alpha:1,beta:1,ewma:0.5,obsCount:0,lastObserved:-999,hits:[],seq:[]};}
 
 function newSim(datasetKey, seed){
-  const rng = mulberry32(seed || Date.now());
+  const base = seed || Date.now();
+  // Three ISOLATED RNG streams - prevents truth/detection/policy cross-contamination
+  const emitterRng   = mulberry32(base);
+  const detectionRng = mulberry32(base + 1000000);
+  const policyRng    = mulberry32(base + 2000000);
+  const rng          = mulberry32(base + 3000000);
   const ds = DATASETS[datasetKey] || DATASETS.zenodo_ism;
   return {
     datasetKey,
-    seed: seed || Date.now(),
-    rng,
+    seed: base,
+    rng, emitterRng, detectionRng, policyRng,
     t: 0,
     running: false,
-    emitters: ds.initEmitters(rng),
-    cfg: { noise: 0.8, pfa: 0.03, snrBase: ds.snrBase, detectThresh: 3.0 },
+    emitters: ds.initEmitters(emitterRng),
+    cfg: { noise: 0.8, pfa: 0.03, snrBase: ds.snrBase, detectThresh: 4.0 },
     belief: Array.from({length: N_FREQ}, (_, i) => ({...freqBelief(), freqIdx: i})),
     history: [],
     currentFreq: 0,
     lastDecision: null,
-    metrics: { TP: 0, FP: 0, TN: 0, FN: 0, correctPred: 0, totalPred: 0 }
+    metrics: {
+      TP: 0, FP: 0, TN: 0, FN: 0,
+      correctPred: 0, totalPred: 0,
+      capturedEmissions: 0,
+      totalEmissions: 0,
+      visitCounts: new Array(N_FREQ).fill(0)
+    }
   };
 }
 
@@ -1007,7 +1018,7 @@ function detectPeriodicity(fs,t){
 }
 
 function computeCandidates(sim,model){
-  const t=sim.t;const W={pred:.34,unc:.15,period:.20,ig:.15,recency:.10,sw:.06};
+  const t=sim.t;const W={pred:.28,unc:.22,period:.18,ig:.16,recency:.16,sw:.00};
   const labels = activeDataset.shortLabels;
   return Array.from({length:N_FREQ},(_,f)=>{
     const fs=sim.belief[f];const p=predict(fs,model);
@@ -1028,7 +1039,7 @@ function selectAction(sim,policy,model){
   if(policy==='random')wf=Math.floor(sim.rng()*N_FREQ);
   else if(policy==='sequential')wf=(sim.currentFreq+1)%N_FREQ;
   else if(policy==='ucb'){let best=-Infinity;cands.forEach(c=>{const fs=sim.belief[c.freq];const s=fs.alpha/(fs.alpha+fs.beta)+Math.sqrt(2*Math.log(sim.t+2)/(fs.obsCount+1));if(s>best){best=s;wf=c.freq;}});}
-  else if(policy==='thompson'){let best=-Infinity;cands.forEach(c=>{const fs=sim.belief[c.freq];const th=betaSample(sim.rng,fs.alpha,fs.beta);if(th>best){best=th;wf=c.freq;}});}
+  else if(policy==='thompson'){let best=-Infinity;cands.forEach(c=>{const fs=sim.belief[c.freq];const th=betaSample(sim.policyRng,fs.alpha,fs.beta);if(th>best){best=th;wf=c.freq;}});}
   else{let best=-Infinity;cands.forEach(c=>{if(c.total>best){best=c.total;wf=c.freq;}});}
   cands.sort((a,b)=>b.total-a.total);
   return{winnerFreq:wf,cands};
@@ -1039,25 +1050,36 @@ function step(sim){
   const policy=document.getElementById('selPolicy')?.value||'smartscan';
   const model=document.getElementById('selModel')?.value||'adaptive';
   
-  // Non-repeating realistic emitter dynamics!
-  const { truth, powers } = computeEmitterStates(sim.emitters, t, sim.rng);
-  
+  // Truth: ISOLATED emitterRng - no cross-contamination with detection/policy
+  const { truth, powers } = computeEmitterStates(sim.emitters, t, sim.emitterRng);
+
+  // Count ALL active channel-slots globally (emission budget)
+  const totalActiveThisSlot = truth.filter(Boolean).length;
+  sim.metrics.totalEmissions += totalActiveThisSlot;
+
   const {winnerFreq, cands} = selectAction(sim, policy, model);
   sim.lastDecision = {t, cands, winnerFreq, truthSnapshot: truth.slice(), powerSnapshot: powers.slice()};
-  
+  sim.metrics.visitCounts[winnerFreq]++;
+
+  // Detection: ISOLATED detectionRng - cannot correlate with emitter truth RNG
   const isActive = truth[winnerFreq];
   const truePower = powers[winnerFreq];
-  const snr = isActive ? (truePower - activeDataset.noiseFloor) + gaussianSample(sim.rng, 0, 1.0) : gaussianSample(sim.rng, 0, 1.2);
-  const pd = clamp(sigmoid(snr - sim.cfg.detectThresh), 0.05, 0.98);
-  const detected = isActive ? (sim.rng() < pd) : (sim.rng() < sim.cfg.pfa);
+  // Realistic SNR: Rayleigh fading (sigma=3dB), hard cap at 25dB (no 60dB SNR)
+  const rawSnr = isActive
+    ? Math.min((truePower - activeDataset.noiseFloor) + gaussianSample(sim.detectionRng, 0, 3.0), 25.0)
+    : Math.abs(gaussianSample(sim.detectionRng, 1.5, 1.5));
+  const snr = Math.max(rawSnr, 0.1);
+  // Realistic Pd: max 90% (fading + pointing loss margin)
+  const pd = isActive ? clamp(sigmoid((snr - sim.cfg.detectThresh) * 1.1), 0.18, 0.90) : 0;
+  const detected = isActive ? (sim.detectionRng() < pd) : (sim.detectionRng() < sim.cfg.pfa);
   const falseAlarm = detected && !isActive;
-  
+
   const fs = sim.belief[winnerFreq];
   fs.obsCount++;
   fs.lastObserved = t;
   fs.seq.push(detected ? 1 : 0);
   if (fs.seq.length > 40) fs.seq.shift();
-  fs.ewma = 0.75 * fs.ewma + 0.25 * (detected ? 1 : 0);
+  fs.ewma = 0.80 * fs.ewma + 0.20 * (detected ? 1 : 0);
   if (detected) {
     fs.alpha++;
     fs.hits.push(t);
@@ -1065,21 +1087,25 @@ function step(sim){
   } else {
     fs.beta++;
   }
-  
+
   const cand = cands.find(c => c.freq === winnerFreq);
   const predVal = cand ? cand.prediction : 0.5;
-  const predCorrect = (predVal >= 0.5) === detected;
+  // Accuracy: correct when prediction direction matches TRUE activity (not just detection)
+  const predCorrect = (predVal >= 0.5) === isActive;
   sim.metrics.totalPred++;
   if (predCorrect) sim.metrics.correctPred++;
-  
-  if (isActive && detected) sim.metrics.TP++;
+
+  if (isActive && detected)       sim.metrics.TP++;
   else if (isActive && !detected) sim.metrics.FN++;
   else if (!isActive && detected) sim.metrics.FP++;
-  else sim.metrics.TN++;
-  
+  else                            sim.metrics.TN++;
+
+  // GLOBAL: count captured emissions (across ALL channels, not just visited)
+  if (isActive && detected) sim.metrics.capturedEmissions++;
+
   sim.history.push({t, truth, powers, observedFreq: winnerFreq, detected, falseAlarm, isActive, snr});
   if (sim.history.length > HIST_LEN) sim.history.shift();
-  
+
   sim.currentFreq = winnerFreq;
   sim.t++;
   return {winnerFreq, detected, isActive, falseAlarm, snr, cands};
@@ -1249,12 +1275,14 @@ function renderInfoGain(sim){
 // ======= RENDER SIMULATION UI =======
 function renderSimUI(sim, res){
   const m = sim.metrics;
-  const acc = m.totalPred > 0 ? (m.correctPred / m.totalPred) : 1.0;
-  const prec = (m.TP + m.FP) > 0 ? (m.TP / (m.TP + m.FP)) : 1.0;
-  const recall = (m.TP + m.FN) > 0 ? (m.TP / (m.TP + m.FN)) : 1.0;
-  const f1 = (prec + recall) > 0 ? (2 * prec * recall / (prec + recall)) : 1.0;
+  // Per-visit prediction accuracy
+  const acc = m.totalPred > 0 ? (m.correctPred / m.totalPred) : 0.5;
+  const prec   = (m.TP + m.FP) > 0 ? (m.TP / (m.TP + m.FP)) : 0.5;
+  const recall = (m.TP + m.FN) > 0 ? (m.TP / (m.TP + m.FN)) : 0.5;
+  const f1 = (prec + recall) > 0 ? (2 * prec * recall / (prec + recall)) : 0.5;
   const pfa = (m.FP + m.TN) > 0 ? (m.FP / (m.FP + m.TN)) : 0.0;
-  const ir = (m.TP + m.FN) > 0 ? (m.TP / (m.TP + m.FN)) : 1.0;
+  // GLOBAL: capturedEmissions / totalEmissions across ALL channels
+  const ir = m.totalEmissions > 0 ? (m.capturedEmissions / m.totalEmissions) : 0.0;
 
   document.getElementById('simTick').textContent = 'T = ' + sim.t;
   document.getElementById('rxFreqLeft').textContent = activeDataset.shortLabels[sim.currentFreq];
@@ -1282,7 +1310,7 @@ function renderSimUI(sim, res){
   document.getElementById('cmTN').textContent = m.TN;
 
   if(res){
-    document.getElementById('rxSnrLeft').textContent = res.snr.toFixed(1) + ' dB';
+    document.getElementById('rxSnrLeft').textContent = Math.min(res.snr, 25.0).toFixed(1) + ' dB';
     document.getElementById('rxDetLeft').innerHTML = res.detected 
       ? `<span style="color:var(--${res.falseAlarm ? 'amber' : 'green'})">${res.falseAlarm ? 'FALSE ALARM' : 'DETECTED'}</span>` 
       : '<span style="color:var(--red)">MISS</span>';
