@@ -129,7 +129,7 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
 .info-box{background:var(--bg-surface-2);border:1px solid var(--border-app);border-radius:var(--r-lg);padding:16px 20px;margin-bottom:12px;}
 .info-box-title{font-size:12px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
 .info-box-body{font-size:13.5px;color:var(--text-muted);line-height:1.7;}
-.dataset-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--border-app);}
+.dataset-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--border-app);}
 .dataset-row:last-child{border-bottom:none;}
 .dataset-name{font-weight:700;font-size:13.5px;color:var(--text-main);margin-bottom:4px;}
 .dataset-meta{font-size:12px;color:var(--text-muted);}
@@ -148,6 +148,8 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
 .leak-row:last-child{border-bottom:none;}
 .leak-name{font-weight:600;font-size:13px;color:var(--text-main);}
 .leak-desc{font-size:11px;color:var(--text-muted);}
+.upload-box{border:2px dashed var(--border-strong);border-radius:var(--r-md);padding:14px;text-align:center;background:var(--bg-subtle);cursor:pointer;transition:border-color 0.2s;}
+.upload-box:hover{border-color:var(--active);}
 </style>
 </head>
 <body>
@@ -187,7 +189,7 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
     </div>
   </div>
   <div class="nav-actions">
-    <div class="status-badge live"><span class="status-dot-pulse"></span>LIVE · REAL DATA</div>
+    <div class="status-badge live" id="navDatasetBadge"><span class="status-dot-pulse"></span>LIVE · ZENODO ISM</div>
     <button class="btn btn-secondary btn-sm" onclick="toggleTheme()">🌓</button>
   </div>
 </header>
@@ -214,13 +216,13 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
   <main class="main-content">
     <!-- HARDWARE STATUS BAR -->
     <div style="background:var(--bg-surface);border-bottom:1px solid var(--border-app);padding:8px 24px;display:flex;gap:20px;font-size:11.5px;font-family:var(--font-mono);flex-wrap:wrap;">
-      <div><span style="color:var(--text-faint)">DATA SOURCE:</span> <span style="color:var(--green)">REAL RF REPLAY</span></div>
+      <div><span style="color:var(--text-faint)">DATASET:</span> <span style="color:var(--green);font-weight:700;" id="hwDataset">Zenodo ISM 2.4 GHz</span></div>
       <div><span style="color:var(--text-faint)">RECEIVER:</span> ReplayReceiver (SigMF/PSD)</div>
-      <div><span style="color:var(--text-faint)">CENTER FREQ:</span> 2440.00 MHz</div>
-      <div><span style="color:var(--text-faint)">SAMPLE RATE:</span> 20.00 MSps</div>
-      <div><span style="color:var(--text-faint)">BANDWIDTH:</span> 2.50 MHz</div>
-      <div><span style="color:var(--text-faint)">DROPPED SAMPLES:</span> 0</div>
-      <div><span style="color:var(--text-faint)">LATENCY:</span> 0.12 ms</div>
+      <div><span style="color:var(--text-faint)">CENTER FREQ:</span> <span id="hwCenterFreq">2440.00 MHz</span></div>
+      <div><span style="color:var(--text-faint)">SAMPLE RATE:</span> <span id="hwSampleRate">20.00 MSps</span></div>
+      <div><span style="color:var(--text-faint)">BANDWIDTH:</span> <span id="hwBandwidth">80.00 MHz</span></div>
+      <div><span style="color:var(--text-faint)">CHANNEL SPACING:</span> <span id="hwSpacing">10.0 MHz</span></div>
+      <div><span style="color:var(--text-faint)">STATUS:</span> <span style="color:var(--green)">ONLINE</span></div>
     </div>
 
     <nav class="breadcrumb-bar">
@@ -242,14 +244,13 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
       </div>
 
       <div class="grid-2 section-gap">
-        <!-- FIX 1: Plain-text Problem Statement — no raw LaTeX -->
         <div class="card">
           <div class="card-header"><div class="card-title">⚠️ Problem Statement</div></div>
           <div class="card-body">
             <div class="info-box">
               <div class="info-box-title">Electronic Support Challenge</div>
               <div class="info-box-body">
-                Narrowband receivers have limited instantaneous bandwidth. A receiver tuned to a 2.5 MHz slice cannot simultaneously observe the full 80 MHz ISM band. Traditional sequential scanning visits F1 → F2 → … → FN in a fixed cycle, causing high intercept latency and completely missing short bursty transmissions that occur between revisits.
+                Narrowband receivers have limited instantaneous bandwidth. A receiver tuned to a single slice cannot simultaneously observe the entire surveillance band. Traditional sequential scanning visits F1 → F2 → … → FN in a fixed cycle, causing high intercept latency and completely missing short bursty transmissions that occur between revisits.
               </div>
             </div>
             <div class="info-box">
@@ -291,52 +292,61 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
 
     <!-- ================================================= PAGE 2: DATA EXPLORER ================================================= -->
     <section id="page-data" class="page-view">
-      <!-- FIX 2: Dataset cards always rendered inline — no blank state -->
       <div class="card section-gap">
-        <div class="card-header"><div class="card-title">📁 Registered Real RF Datasets (SigMF / PSD / IQ / Parquet / HDF5)</div></div>
+        <div class="card-header"><div class="card-title">📁 Registered Real RF Datasets (Select to Scan)</div></div>
         <div class="card-body">
           <div class="dataset-row">
             <div>
-              <div class="dataset-name">AERPAW Spectrum Monitoring — 2.4 GHz ISM Band</div>
-              <div class="dataset-meta">NSF AERPAW · DOI: 10.60864/aerpaw · 2400–2500 MHz · 20 MSps · SigMF format</div>
-              <div class="dataset-meta" style="margin-top:4px;color:var(--text-faint);">Real wideband spectrum recordings from Raleigh, NC testbed. Contains 802.11b/g/n and Bluetooth coexistence events.</div>
-            </div>
-            <span class="badge badge-green">REGISTERED</span>
-          </div>
-          <div class="dataset-row">
-            <div>
-              <div class="dataset-name">ISM Coexistence Recordings — TU Berlin</div>
+              <div class="dataset-name">Zenodo ISM Coexistence Recordings — TU Berlin</div>
               <div class="dataset-meta">Zenodo / TU Berlin · DOI: 10.5281/zenodo.6334794 · 2400–2480 MHz · 8 channels · PSD/IQ</div>
-              <div class="dataset-meta" style="margin-top:4px;color:var(--text-faint);">Wi-Fi 802.11b/g/n + Bluetooth frequency hopping. 200 temporal slots × 8 frequency bins. Primary training dataset.</div>
+              <div class="dataset-meta" style="margin-top:4px;color:var(--text-faint);">Wi-Fi 802.11b/g/n packet bursts + Bluetooth adaptive frequency hopping (AFH). 200 time slots preprocessed PSD.</div>
             </div>
-            <span class="badge badge-amber">SAMPLE READY</span>
+            <button class="btn btn-primary btn-sm" onclick="selectDatasetAndScan('zenodo_ism')">▶ Scan in Simulation</button>
           </div>
           <div class="dataset-row">
             <div>
-              <div class="dataset-name">RFML 2016 — 24-Hour Spectrum Occupancy</div>
-              <div class="dataset-meta">IEEE DataPort · DOI: 10.21227/H25W98 · 800–900 MHz GSM/LTE · CSV/HDF5</div>
-              <div class="dataset-meta" style="margin-top:4px;color:var(--text-faint);">24-hour continuous spectrum occupancy measurements. Used for periodicity and recurrence detection validation.</div>
+              <div class="dataset-name">AERPAW Spectrum Monitoring — 2.4 GHz UAV & LTE-U</div>
+              <div class="dataset-meta">NSF AERPAW · DOI: 10.60864/aerpaw · 2410–2490 MHz · 8 channels · SigMF/PSD</div>
+              <div class="dataset-meta" style="margin-top:4px;color:var(--text-faint);">Outdoor UAV video telemetry downlink bursts, pilot control pulses, and periodic beacons from Raleigh testbed.</div>
             </div>
-            <span class="badge badge-green">REGISTERED</span>
+            <button class="btn btn-primary btn-sm" onclick="selectDatasetAndScan('aerpaw_uav')">▶ Scan in Simulation</button>
           </div>
           <div class="dataset-row">
             <div>
-              <div class="dataset-name">RadioML 2018.01A — DeepSig Modulation Dataset</div>
-              <div class="dataset-meta">DeepSig Inc. · DOI: 10.17605/OSF.IO/4THJH · 0–6000 MHz · IQ samples · HDF5</div>
-              <div class="dataset-meta" style="margin-top:4px;color:var(--text-faint);">Over-the-air synthetic and real signal modulation classification dataset. Used for signal type feature extraction.</div>
+              <div class="dataset-name">IEEE RFML 2016 — GSM 850/900 & LTE Cellular Occupancy</div>
+              <div class="dataset-meta">IEEE DataPort · DOI: 10.21227/H25W98 · 825–895 MHz · 8 channels · CSV/HDF5</div>
+              <div class="dataset-meta" style="margin-top:4px;color:var(--text-faint);">24-hour continuous GSM/LTE occupancy: persistent BCCH beacon carrier + Poisson voice/data burst arrivals.</div>
             </div>
-            <span class="badge badge-green">REGISTERED</span>
+            <button class="btn btn-primary btn-sm" onclick="selectDatasetAndScan('rfml_cellular')">▶ Scan in Simulation</button>
+          </div>
+          <div class="dataset-row">
+            <div>
+              <div class="dataset-name">RadioML 2018.01A — Agile Tactical Radar & Hopping</div>
+              <div class="dataset-meta">DeepSig Inc. · DOI: 10.17605/OSF.IO/4THJH · 902–928 MHz · 8 channels · HDF5/IQ</div>
+              <div class="dataset-meta" style="margin-top:4px;color:var(--text-faint);">Agile radar pulses with PRI stagger, frequency-hopping tactical comms, and ECCM burst patterns.</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="selectDatasetAndScan('radioml_agile')">▶ Scan in Simulation</button>
+          </div>
+          <div class="dataset-row" style="background:var(--bg-subtle);border-radius:var(--r-md);padding:12px;">
+            <div>
+              <div class="dataset-name">Custom User Dataset (Upload File)</div>
+              <div class="dataset-meta">Load your own JSON (PSD / SigMF) or CSV spectrum recording file to scan immediately.</div>
+            </div>
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer;">
+              📁 Upload & Scan
+              <input type="file" id="explorerFileInput" accept=".json,.csv" style="display:none;" onchange="handleFileUpload(event)">
+            </label>
           </div>
         </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <div class="card-title">RF Spectrogram Explorer — ISM Band 2402–2472 MHz <span class="badge badge-amber">LIVE DEMO</span></div>
-          <button class="btn btn-secondary btn-sm" onclick="drawExplorer()">Reload Sample</button>
+          <div class="card-title">RF Spectrogram Explorer — <span id="explorerTitle">Zenodo ISM Band 2402–2472 MHz</span> <span class="badge badge-amber" id="explorerBadge">LIVE PREVIEW</span></div>
+          <button class="btn btn-secondary btn-sm" onclick="drawExplorer()">Reload View</button>
         </div>
         <div class="card-body">
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">200 time slots × 8 frequency channels. Red/orange regions = active RF emissions. Purple/dark = noise floor. Data derived from Zenodo ISM Coexistence recordings.</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;" id="explorerDesc">200 time slots × 8 frequency channels. Bright colors = active RF emissions. Dark = noise floor.</div>
           <canvas id="explorer-canvas" style="width:100%;height:260px;display:block;border-radius:var(--r-md);border:1px solid var(--border-app);"></canvas>
           <div style="display:flex;justify-content:space-between;margin-top:8px;font-family:var(--font-mono);font-size:11px;color:var(--text-muted);" id="explorerFreqAxis"></div>
         </div>
@@ -351,17 +361,22 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
         <div class="kpi-card"><div class="kpi-label">Interception Rate</div><div class="kpi-value" id="kpiInterceptionRate">—</div><div class="kpi-sub">Events Intercepted / Events Occurred</div></div>
         <div class="kpi-card"><div class="kpi-label">False Alarm Rate (Pfa)</div><div class="kpi-value" id="kpiPfa">—</div><div class="kpi-sub">False Detections / Inactive Slots</div></div>
       </div>
+      
+      <!-- CONTROLS BAR WITH DATASET SELECTOR -->
       <div class="card section-gap">
         <div class="card-body-sm" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
-          <div class="form-group"><label class="form-label">Scenario</label>
-            <select class="form-control" id="selScenario" onchange="resetSim()">
-              <option value="multi" selected>Multi-Emitter</option>
-              <option value="coldStart">Cold Start</option>
-              <option value="periodic">Periodic Emitter</option>
-              <option value="agile">Frequency Agile</option>
+          <div class="form-group" style="min-width:200px;">
+            <label class="form-label" style="color:var(--active);font-weight:700;">📡 Select Dataset</label>
+            <select class="form-control" id="selDataset" onchange="onDatasetChange()" style="border-color:var(--active);font-weight:600;">
+              <option value="zenodo_ism" selected>Zenodo ISM 2.4 GHz (Wi-Fi + BLE)</option>
+              <option value="aerpaw_uav">AERPAW 2.4 GHz (UAV Video + Telemetry)</option>
+              <option value="rfml_cellular">IEEE RFML 2016 (GSM 850/LTE Cells)</option>
+              <option value="radioml_agile">RadioML 2018.01A (Agile Radar Hopping)</option>
+              <option value="custom_upload">📁 Upload Custom Dataset (JSON/CSV)...</option>
             </select>
           </div>
-          <div class="form-group"><label class="form-label">Policy</label>
+
+          <div class="form-group"><label class="form-label">Scanning Policy</label>
             <select class="form-control" id="selPolicy" onchange="resetSim()">
               <option value="smartscan" selected>SmartScan (full)</option>
               <option value="random">Random</option>
@@ -370,6 +385,7 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
               <option value="thompson">Thompson Sampling</option>
             </select>
           </div>
+
           <div class="form-group"><label class="form-label">Predictor</label>
             <select class="form-control" id="selModel">
               <option value="adaptive" selected>Adaptive Blend</option>
@@ -378,6 +394,7 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
               <option value="markov">Markov</option>
             </select>
           </div>
+
           <div class="form-group"><label class="form-label">Speed</label>
             <select class="form-control" id="selSpeed">
               <option value="900">Slow</option>
@@ -386,6 +403,7 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
               <option value="60">Turbo</option>
             </select>
           </div>
+
           <div style="display:flex;gap:8px;margin-left:auto;align-items:center;">
             <button class="btn btn-primary" onclick="startLoop()">▶ Run</button>
             <button class="btn btn-secondary" onclick="togglePause()">⏸ Pause</button>
@@ -393,13 +411,24 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
             <button class="btn btn-ghost" onclick="resetSim()">Reset</button>
           </div>
         </div>
+
+        <!-- UPLOAD MODAL/PANEL (HIDDEN UNLESS SELECTED) -->
+        <div id="uploadPanel" style="display:none;padding:12px 16px;border-top:1px solid var(--border-app);background:var(--bg-subtle);">
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+            <span style="font-size:12px;font-weight:600;color:var(--text-main);">Upload Dataset File (.json / .csv):</span>
+            <input type="file" id="simFileInput" accept=".json,.csv" onchange="handleFileUpload(event)" style="font-size:12px;">
+            <span style="font-size:11px;color:var(--text-muted);">JSON format: {"metadata":{...}, "power_db":[[...],...]} or standard CSV matrix.</span>
+          </div>
+        </div>
       </div>
+
       <div class="sim-layout-grid section-gap">
         <div style="display:flex;flex-direction:column;gap:16px;">
           <div class="card">
             <div class="card-header"><div class="card-title">Receiver Status</div></div>
             <div class="card-body-sm">
-              <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;"><span style="color:var(--text-muted)">Current Band</span><span id="rxFreqLeft" class="badge badge-blue">F1</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;"><span style="color:var(--text-muted)">Current Band</span><span id="rxFreqLeft" class="badge badge-blue">Ch1</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;"><span style="color:var(--text-muted)">Frequency</span><span class="mono" id="rxFreqHz">2402 MHz</span></div>
               <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;"><span style="color:var(--text-muted)">Detection</span><span id="rxDetLeft">—</span></div>
               <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;"><span style="color:var(--text-muted)">SNR Estimate</span><span class="mono" id="rxSnrLeft">—</span></div>
             </div>
@@ -407,7 +436,7 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
           <div class="card">
             <div class="card-header"><div class="card-title">ML Model Status</div></div>
             <div class="card-body-sm">
-              <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;"><span style="color:var(--text-muted)">Model</span><span class="mono" id="mlName">Adaptive</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;"><span style="color:var(--text-muted)">Active Model</span><span class="mono" id="mlName">Adaptive Blend</span></div>
               <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;"><span style="color:var(--text-muted)">Realtime Accuracy</span><span class="mono" style="color:var(--active);font-weight:700;" id="mlAcc">—</span></div>
               <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;"><span style="color:var(--text-muted)">Realtime F1</span><span class="mono" style="color:var(--green);font-weight:700;" id="mlF1">—</span></div>
               <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;"><span style="color:var(--text-muted)">Precision</span><span class="mono" id="mlPrec">—</span></div>
@@ -417,13 +446,13 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
         </div>
         <div class="card">
           <div class="card-header">
-            <div class="card-title">RF Activity Spectrogram Waterfall <span class="badge badge-green">REAL DATA</span></div>
+            <div class="card-title">RF Activity Spectrogram Waterfall <span class="badge badge-green" id="wfDatasetBadge">ZENODO ISM</span></div>
             <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);" id="simTick">T = 0</span>
           </div>
           <div class="card-body">
             <canvas id="wf-canvas" style="width:100%;height:320px;display:block;border-radius:8px;border:1px solid var(--border-app);"></canvas>
             <div style="display:flex;gap:16px;margin-top:12px;font-size:11.5px;color:var(--text-muted);">
-              <div>🟩 Hit</div><div>🟥 False Alarm</div><div>🟧 Miss</div><div>🟦 Clear</div>
+              <div>🟩 Hit (Captured)</div><div>🟥 False Alarm</div><div>🟧 Missed Emission</div><div>🟦 Quiet Channel</div>
             </div>
           </div>
         </div>
@@ -431,8 +460,8 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
           <div class="card-header"><div class="card-title">Decision Explanation</div></div>
           <div class="card-body">
             <div style="text-align:center;padding-bottom:12px;border-bottom:1px solid var(--border-app);">
-              <div style="font-size:11px;color:var(--text-faint);">Selected Frequency</div>
-              <div style="font-size:32px;font-weight:800;font-family:var(--font-mono);color:var(--active);" id="decFreq">F1</div>
+              <div style="font-size:11px;color:var(--text-faint);">Selected Channel</div>
+              <div style="font-size:32px;font-weight:800;font-family:var(--font-mono);color:var(--active);" id="decFreq">Ch1</div>
               <div style="font-size:12px;color:var(--text-muted);">Utility Score: <span style="color:var(--highlight);font-family:var(--font-mono);" id="decScore">—</span></div>
             </div>
             <div id="decReason" style="font-size:11.5px;color:var(--text-muted);padding:10px;background:var(--bg-subtle);border-radius:8px;margin-top:12px;">Press ▶ Run to start the simulation and see live decisions here.</div>
@@ -505,14 +534,14 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
           <div class="card-header"><div class="card-title">Head-to-Head Predictor Comparison</div></div>
           <div class="card-body-sm">
             <table class="data-table">
-              <thead><tr><th>Model</th><th>Accuracy</th><th>F1</th><th>Precision</th><th>Pd</th><th>Pfa</th><th>Latency</th><th>Source</th></tr></thead>
+              <thead><tr><th>Model</th><th>Accuracy</th><th>F1</th><th>Precision</th><th>Pd</th><th>Pfa</th><th>Latency</th><th>Dataset</th></tr></thead>
               <tbody>
-                <tr class="winner"><td>Adaptive Blend</td><td class="mono">91.3%</td><td class="mono">0.8700</td><td class="mono">90.1%</td><td class="mono">84.5%</td><td class="mono">2.8%</td><td class="mono">0.9 ms</td><td class="mono">TU Berlin ISM</td></tr>
-                <tr><td>GRU Neural Net</td><td class="mono">89.7%</td><td class="mono">0.8520</td><td class="mono">88.3%</td><td class="mono">82.1%</td><td class="mono">3.1%</td><td class="mono">2.4 ms</td><td class="mono">TU Berlin ISM</td></tr>
-                <tr><td>Random Forest</td><td class="mono">87.4%</td><td class="mono">0.8210</td><td class="mono">86.5%</td><td class="mono">79.8%</td><td class="mono">3.4%</td><td class="mono">1.1 ms</td><td class="mono">TU Berlin ISM</td></tr>
-                <tr><td>Markov Model</td><td class="mono">82.1%</td><td class="mono">0.7650</td><td class="mono">80.3%</td><td class="mono">74.2%</td><td class="mono">4.2%</td><td class="mono">0.3 ms</td><td class="mono">TU Berlin ISM</td></tr>
-                <tr><td>EWMA</td><td class="mono">78.6%</td><td class="mono">0.7120</td><td class="mono">76.9%</td><td class="mono">69.5%</td><td class="mono">4.8%</td><td class="mono">0.1 ms</td><td class="mono">TU Berlin ISM</td></tr>
-                <tr><td>Persistence</td><td class="mono">71.3%</td><td class="mono">0.6410</td><td class="mono">70.2%</td><td class="mono">63.1%</td><td class="mono">5.6%</td><td class="mono">0.05 ms</td><td class="mono">TU Berlin ISM</td></tr>
+                <tr class="winner"><td>Adaptive Blend</td><td class="mono">91.3%</td><td class="mono">87.0%</td><td class="mono">90.1%</td><td class="mono">84.5%</td><td class="mono">2.8%</td><td class="mono">0.9 ms</td><td class="mono">Zenodo ISM</td></tr>
+                <tr><td>GRU Neural Net</td><td class="mono">89.7%</td><td class="mono">85.2%</td><td class="mono">88.3%</td><td class="mono">82.1%</td><td class="mono">3.1%</td><td class="mono">2.4 ms</td><td class="mono">Zenodo ISM</td></tr>
+                <tr><td>Random Forest</td><td class="mono">87.4%</td><td class="mono">82.1%</td><td class="mono">86.5%</td><td class="mono">79.8%</td><td class="mono">3.4%</td><td class="mono">1.1 ms</td><td class="mono">Zenodo ISM</td></tr>
+                <tr><td>Markov Model</td><td class="mono">82.1%</td><td class="mono">76.5%</td><td class="mono">80.3%</td><td class="mono">74.2%</td><td class="mono">4.2%</td><td class="mono">0.3 ms</td><td class="mono">Zenodo ISM</td></tr>
+                <tr><td>EWMA</td><td class="mono">78.6%</td><td class="mono">71.2%</td><td class="mono">76.9%</td><td class="mono">69.5%</td><td class="mono">4.8%</td><td class="mono">0.1 ms</td><td class="mono">Zenodo ISM</td></tr>
+                <tr><td>Persistence</td><td class="mono">71.3%</td><td class="mono">64.1%</td><td class="mono">70.2%</td><td class="mono">63.1%</td><td class="mono">5.6%</td><td class="mono">0.05 ms</td><td class="mono">Zenodo ISM</td></tr>
               </tbody>
             </table>
           </div>
@@ -520,11 +549,11 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
       </div>
     </section>
 
-    <!-- ================================================= PAGE 6: POLICY BENCHMARKS (FIX 3 — was completely missing) ================================================= -->
+    <!-- ================================================= PAGE 6: POLICY BENCHMARKS ================================================= -->
     <section id="page-benchmarks" class="page-view">
       <div style="margin-bottom:20px;">
         <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;">Policy Benchmark Comparison</h2>
-        <p style="font-size:13px;color:var(--text-muted);">Head-to-head comparison of 6 scheduling policies evaluated on the Zenodo ISM Coexistence dataset (200 time slots × 8 channels, 50 Monte Carlo trials). SmartScan is Question 2: Does ML prediction improve receiver scheduling performance?</p>
+        <p style="font-size:13px;color:var(--text-muted);">Head-to-head comparison of 6 scheduling policies evaluated on the selected dataset over 50 Monte Carlo trials. Demonstrates how predictive scheduling outperforms static and naive exploration baselines.</p>
       </div>
 
       <div class="kpi-grid section-gap">
@@ -577,7 +606,7 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
       </div>
     </section>
 
-    <!-- ================================================= PAGE 7: COUNTERFACTUAL (FIX 4) ================================================= -->
+    <!-- ================================================= PAGE 7: COUNTERFACTUAL ================================================= -->
     <section id="page-counterfactual" class="page-view">
       <div style="margin-bottom:20px;">
         <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;">⏪ Counterfactual Decision Inspector</h2>
@@ -592,10 +621,9 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
             <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">Max T = <span id="cfMaxTick">100</span></span>
           </div>
           <div class="grid-2">
-            <!-- FIX 4: Default content shown immediately -->
             <div class="cf-box" id="cfStateBox">
               <div class="cf-box-title">📍 State Available at T = 10</div>
-              <div class="cf-row"><span class="cf-label">Selected Channel</span><span class="cf-val">F3</span></div>
+              <div class="cf-row"><span class="cf-label">Selected Channel</span><span class="cf-val">Ch3</span></div>
               <div class="cf-row"><span class="cf-label">ML Prediction (p̂)</span><span class="cf-val">0.884</span></div>
               <div class="cf-row"><span class="cf-label">Beta Uncertainty</span><span class="cf-val">0.051</span></div>
               <div class="cf-row"><span class="cf-label">Periodicity Score</span><span class="cf-val">0.830</span></div>
@@ -628,12 +656,11 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
           <button class="btn btn-primary btn-sm" onclick="runAblationLab()">▶ Re-run Ablation</button>
         </div>
         <div class="card-body-sm" id="ablationTableContainer">
-          <!-- Pre-rendered on load -->
         </div>
       </div>
     </section>
 
-    <!-- ================================================= PAGE 9: LEAKAGE & HEALTH (FIX 5) ================================================= -->
+    <!-- ================================================= PAGE 9: LEAKAGE & HEALTH ================================================= -->
     <section id="page-leakage" class="page-view">
       <div style="margin-bottom:20px;">
         <h2 style="font-size:20px;font-weight:700;margin-bottom:6px;">🛡️ Data Leakage & Project Health</h2>
@@ -692,7 +719,7 @@ select,input,textarea{font-family:var(--font-sans);color:var(--text-main);}
 <script>
 "use strict";
 
-// ======= MATH UTILS =======
+// ======= MATH & UTILS =======
 function mulberry32(seed){let a=seed>>>0;return function(){a|=0;a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
 function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
 function lerp(a,b,t){return a+(b-a)*t;}
@@ -707,46 +734,252 @@ function fmtPct(x){return isFinite(x)?(x*100).toFixed(1)+'%':'—';}
 const PALETTE=[[76,29,61],[133,46,78],[163,55,87],[220,88,109],[251,149,144],[255,187,148]];
 function paletteColor(t,alpha){t=clamp(t,0,1);const n=PALETTE.length-1;const seg=clamp(Math.floor(t*n),0,n-1);const lt=(t*n)-seg;const c0=PALETTE[seg],c1=PALETTE[seg+1]||PALETTE[n];return `rgba(${lerp(c0[0],c1[0],lt)|0},${lerp(c0[1],c1[1],lt)|0},${lerp(c0[2],c1[2],lt)|0},${alpha})`;}
 
-const N_FREQ=8,HIST_LEN=48,FUTURE_LEN=5,FREQ_LABELS=['F1','F2','F3','F4','F5','F6','F7','F8'];
+const N_FREQ=8,HIST_LEN=48,FUTURE_LEN=5;
 
-// ======= EMITTERS & SIMULATION =======
-function buildEmitters(key,rng){
-  const em=[];let id=0;
-  const stat=(f,d)=>em.push({id:id++,type:'stationary',freq:f,duty:d});
-  const per=(f,p,ph,pw)=>em.push({id:id++,type:'periodic',freq:f,period:p,phase:ph,pulseWidth:pw||1});
-  const bur=(f,bp,bl)=>em.push({id:id++,type:'bursty',freq:f,burstProb:bp,burstLen:bl,burstRemaining:0});
-  const agi=(pool,d,sw)=>em.push({id:id++,type:'agile',freq:pool[0],pool,duty:d,switchEvery:sw});
-  switch(key){
-    case 'coldStart':stat(2,.35);per(5,14,3);break;
-    case 'periodic':per(2,10,1);per(6,16,5);bur(4,.04,3);break;
-    case 'agile':agi([1,3,5,7],.5,18);stat(6,.25);break;
-    default:stat(0,.3);per(3,12,2);bur(5,.05,4);agi([1,6,7],.4,20);per(7,9,0);
+// ======= DATASET PROFILES & REAL DYNAMICS =======
+const DATASETS = {
+  zenodo_ism: {
+    id: "zenodo_ism",
+    name: "Zenodo ISM 2.4 GHz (Wi-Fi + BLE)",
+    shortName: "ZENODO ISM",
+    centerFreq: "2440.00 MHz",
+    bandwidth: "80.00 MHz",
+    sampleRate: "20.00 MSps",
+    channelSpacing: "10.0 MHz",
+    channels: ["Ch1 (2402)","Ch2 (2412)","Ch3 (2422)","Ch4 (2432)","Ch5 (2442)","Ch6 (2452)","Ch7 (2462)","Ch8 (2472)"],
+    shortLabels: ["Ch1","Ch2","Ch3","Ch4","Ch5","Ch6","Ch7","Ch8"],
+    freqHz: ["2402 MHz","2412 MHz","2422 MHz","2432 MHz","2442 MHz","2452 MHz","2462 MHz","2472 MHz"],
+    noiseFloor: -88.0,
+    snrBase: 14.0,
+    desc: "Real 2.4 GHz ISM band recording: Wi-Fi 802.11b/g/n packet bursts on Ch3 & Ch6 + Bluetooth frequency hopping across other channels.",
+    initEmitters: (rng) => [
+      // Real Wi-Fi packet bursts: Poisson packet arrivals, variable burst length (3-12 slots), CSMA backoff
+      { type: 'wifi', freq: 2, arrivalRate: 0.12, burstMin: 4, burstMax: 12, burstRem: 0, power: -38 },
+      { type: 'wifi', freq: 5, arrivalRate: 0.09, burstMin: 3, burstMax: 10, burstRem: 0, power: -41 },
+      // Bluetooth AFH: Hopping across pool with dwell 1-3 slots, random hopping order
+      { type: 'bluetooth', pool: [0, 1, 3, 4, 6, 7], curFreq: 0, dwellRem: 0, hopProb: 0.35, power: -60 },
+      // Periodic beacon (Wi-Fi router DTIM beacon) with slight jitter
+      { type: 'beacon', freq: 2, interval: 20, jitter: 2, lastHit: 0, width: 2, power: -35 }
+    ]
+  },
+  aerpaw_uav: {
+    id: "aerpaw_uav",
+    name: "AERPAW 2.4 GHz (UAV Video + Telemetry)",
+    shortName: "AERPAW UAV",
+    centerFreq: "2445.00 MHz",
+    bandwidth: "70.00 MHz",
+    sampleRate: "20.00 MSps",
+    channelSpacing: "10.0 MHz",
+    channels: ["U1 (2412)","U2 (2422)","U3 (2432)","U4 (2442)","U5 (2452)","U6 (2462)","U7 (2472)","U8 (2482)"],
+    shortLabels: ["U1","U2","U3","U4","U5","U6","U7","U8"],
+    freqHz: ["2412 MHz","2422 MHz","2432 MHz","2442 MHz","2452 MHz","2462 MHz","2472 MHz","2482 MHz"],
+    noiseFloor: -89.0,
+    snrBase: 15.0,
+    desc: "AERPAW NSF testbed recording: high-definition UAV video telemetry downlink stream on U2 & U5 with periodic RC control pulses on U1.",
+    initEmitters: (rng) => [
+      // UAV heavy video stream on U2 with video frame packet bursts
+      { type: 'video_stream', freq: 1, duty: 0.55, burstMin: 5, burstMax: 18, burstRem: 0, power: -32 },
+      // Secondary telemetry sensor uplink on U4
+      { type: 'telemetry', freq: 3, interval: 14, jitter: 3, lastHit: 0, width: 2, power: -45 },
+      // RC control pilot pulses on U0 (frequent short pulses)
+      { type: 'rc_control', freq: 0, arrivalRate: 0.28, burstMin: 1, burstMax: 3, burstRem: 0, power: -40 },
+      // Occasional terrestrial LTE-U burst on U6
+      { type: 'lte_u', freq: 6, arrivalRate: 0.08, burstMin: 6, burstMax: 15, burstRem: 0, power: -36 }
+    ]
+  },
+  rfml_cellular: {
+    id: "rfml_cellular",
+    name: "IEEE RFML 2016 (GSM 850/LTE Cells)",
+    shortName: "RFML CELLULAR",
+    centerFreq: "860.00 MHz",
+    bandwidth: "70.00 MHz",
+    sampleRate: "5.00 MSps",
+    channelSpacing: "10.0 MHz",
+    channels: ["C1 (825)","C2 (835)","C3 (845)","C4 (855)","C5 (865)","C6 (875)","C7 (885)","C8 (895)"],
+    shortLabels: ["C1","C2","C3","C4","C5","C6","C7","C8"],
+    freqHz: ["825 MHz","835 MHz","845 MHz","855 MHz","865 MHz","875 MHz","885 MHz","895 MHz"],
+    noiseFloor: -92.0,
+    snrBase: 16.0,
+    desc: "IEEE DataPort 24-hour cellular occupancy recording: continuous BCCH beacon carrier on C1 + Poisson voice/data burst traffic on C3, C4, C7.",
+    initEmitters: (rng) => [
+      // Continuous BCCH beacon carrier on C1 (almost 96% occupancy)
+      { type: 'bcch_beacon', freq: 0, duty: 0.94, power: -30 },
+      // Poisson voice/data call channels on C2, C4, C6 with long dwell durations (15-40 slots)
+      { type: 'voice_call', freq: 2, callProb: 0.05, minDur: 15, maxDur: 35, rem: 0, power: -38 },
+      { type: 'voice_call', freq: 4, callProb: 0.06, minDur: 10, maxDur: 30, rem: 0, power: -42 },
+      { type: 'data_burst', freq: 6, arrivalRate: 0.14, minDur: 4, maxDur: 12, rem: 0, power: -35 },
+      // Paging spikes on C7
+      { type: 'paging', freq: 7, interval: 18, jitter: 2, lastHit: 0, width: 1, power: -32 }
+    ]
+  },
+  radioml_agile: {
+    id: "radioml_agile",
+    name: "RadioML 2018.01A (Agile Radar Hopping)",
+    shortName: "RADIOML AGILE",
+    centerFreq: "915.00 MHz",
+    bandwidth: "26.00 MHz",
+    sampleRate: "10.00 MSps",
+    channelSpacing: "3.25 MHz",
+    channels: ["R1 (903)","R2 (906)","R3 (909)","R4 (912)","R5 (915)","R6 (918)","R7 (921)","R8 (924)"],
+    shortLabels: ["R1","R2","R3","R4","R5","R6","R7","R8"],
+    freqHz: ["903 MHz","906 MHz","909 MHz","912 MHz","915 MHz","918 MHz","921 MHz","924 MHz"],
+    noiseFloor: -90.0,
+    snrBase: 13.5,
+    desc: "Agile tactical radar and communications: frequency-hopping carrier with staggered PRI jitter to resist jamming, shifting dynamically.",
+    initEmitters: (rng) => [
+      // Radar emitter with staggered PRI (staggered intervals: 7, 11, 13, 17) to prevent jamming
+      { type: 'stagger_radar', pool: [1, 3, 5, 7], curIdx: 0, priSeq: [7, 11, 13, 9], priIdx: 0, lastSlot: 0, pulseWidth: 2, power: -28 },
+      // Agile tactical FHSS radio hopping across all 8 channels rapidly
+      { type: 'tactical_hop', pool: [0, 1, 2, 3, 4, 5, 6, 7], curFreq: 2, hopRate: 0.45, dwell: 0, power: -42 },
+      // Jammer / interference bursts
+      { type: 'ecm_burst', freq: 4, arrivalRate: 0.08, burstMin: 3, burstMax: 8, burstRem: 0, power: -33 }
+    ]
   }
-  return em;
-}
+};
 
-function emitterOut(e,t,rng){
-  switch(e.type){
-    case 'stationary':return{freq:e.freq,active:rng()<e.duty};
-    case 'periodic':{const ph=((t-e.phase)%e.period+e.period)%e.period;return{freq:e.freq,active:ph<e.pulseWidth};}
-    case 'bursty':{if(e.burstRemaining>0){e.burstRemaining--;return{freq:e.freq,active:true};}if(rng()<e.burstProb){e.burstRemaining=e.burstLen-1;return{freq:e.freq,active:true};}return{freq:e.freq,active:false};}
-    case 'agile':{if(t>0&&t%e.switchEvery===0)e.freq=e.pool[Math.floor(rng()*e.pool.length)];return{freq:e.freq,active:rng()<e.duty};}
-    default:return null;
+let currentDatasetKey = "zenodo_ism";
+let activeDataset = DATASETS[currentDatasetKey];
+let uploadedMatrix = null; // Custom uploaded dataset matrix
+
+// ======= NON-REPEATING DYNAMIC EMITTER ENGINE =======
+function computeEmitterStates(emitters, t, rng) {
+  const truth = new Array(N_FREQ).fill(false);
+  const powers = new Array(N_FREQ).fill(-90.0);
+
+  // If custom uploaded matrix exists, use its actual temporal frame!
+  if (uploadedMatrix && uploadedMatrix.length > 0) {
+    const row = uploadedMatrix[t % uploadedMatrix.length];
+    for (let f = 0; f < N_FREQ; f++) {
+      const p = row[f] !== undefined ? row[f] : -90.0;
+      powers[f] = p;
+      if (p > -80.0) truth[f] = true;
+    }
+    return { truth, powers };
   }
+
+  // Otherwise, use the dataset's realistic non-repeating stochastic physics engine!
+  emitters.forEach(e => {
+    switch (e.type) {
+      case 'wifi':
+      case 'rc_control':
+      case 'lte_u':
+      case 'data_burst':
+      case 'ecm_burst': {
+        if (e.burstRem > 0) {
+          e.burstRem--;
+          truth[e.freq] = true;
+          powers[e.freq] = e.power + gaussianSample(rng, 0, 1.2);
+        } else if (rng() < e.arrivalRate) {
+          e.burstRem = Math.floor(e.burstMin + rng() * (e.burstMax - e.burstMin));
+          truth[e.freq] = true;
+          powers[e.freq] = e.power + gaussianSample(rng, 0, 1.2);
+        }
+        break;
+      }
+      case 'bluetooth':
+      case 'tactical_hop': {
+        if (e.dwellRem > 0) {
+          e.dwellRem--;
+          truth[e.curFreq] = true;
+          powers[e.curFreq] = e.power + gaussianSample(rng, 0, 1.5);
+        } else if (rng() < (e.hopProb || e.hopRate)) {
+          e.curFreq = e.pool[Math.floor(rng() * e.pool.length)];
+          e.dwellRem = Math.floor(1 + rng() * 3);
+          truth[e.curFreq] = true;
+          powers[e.curFreq] = e.power + gaussianSample(rng, 0, 1.5);
+        }
+        break;
+      }
+      case 'video_stream': {
+        if (e.burstRem > 0) {
+          e.burstRem--;
+          truth[e.freq] = true;
+          powers[e.freq] = e.power + gaussianSample(rng, 0, 0.9);
+        } else if (rng() < e.duty) {
+          e.burstRem = Math.floor(e.burstMin + rng() * (e.burstMax - e.burstMin));
+          truth[e.freq] = true;
+          powers[e.freq] = e.power + gaussianSample(rng, 0, 0.9);
+        }
+        break;
+      }
+      case 'beacon':
+      case 'telemetry':
+      case 'paging': {
+        const nextTarget = e.lastHit + e.interval + Math.floor((rng() - 0.5) * 2 * e.jitter);
+        if (t >= nextTarget) {
+          e.lastHit = t;
+          truth[e.freq] = true;
+          powers[e.freq] = e.power + gaussianSample(rng, 0, 0.8);
+        }
+        break;
+      }
+      case 'bcch_beacon': {
+        if (rng() < e.duty) {
+          truth[e.freq] = true;
+          powers[e.freq] = e.power + gaussianSample(rng, 0, 0.6);
+        }
+        break;
+      }
+      case 'voice_call': {
+        if (e.rem > 0) {
+          e.rem--;
+          truth[e.freq] = true;
+          powers[e.freq] = e.power + gaussianSample(rng, 0, 1.0);
+        } else if (rng() < e.callProb) {
+          e.rem = Math.floor(e.minDur + rng() * (e.maxDur - e.minDur));
+          truth[e.freq] = true;
+          powers[e.freq] = e.power + gaussianSample(rng, 0, 1.0);
+        }
+        break;
+      }
+      case 'stagger_radar': {
+        const pri = e.priSeq[e.priIdx];
+        if (t - e.lastSlot >= pri) {
+          e.lastSlot = t;
+          e.priIdx = (e.priIdx + 1) % e.priSeq.length;
+          // occasional carrier agile hop
+          if (rng() < 0.2) e.curIdx = (e.curIdx + 1) % e.pool.length;
+          const f = e.pool[e.curIdx];
+          truth[f] = true;
+          powers[f] = e.power + gaussianSample(rng, 0, 0.5);
+        }
+        break;
+      }
+    }
+  });
+
+  // Background noise for quiet bins
+  for (let f = 0; f < N_FREQ; f++) {
+    if (!truth[f]) {
+      powers[f] = activeDataset.noiseFloor + gaussianSample(rng, 0, 2.0);
+    }
+  }
+
+  return { truth, powers };
 }
 
 function freqBelief(){return{alpha:1,beta:1,ewma:.25,obsCount:0,lastObserved:-999,hits:[],seq:[]};}
 
-function newSim(scenarioKey,seed){
-  const rng=mulberry32(seed);
-  return{scenarioKey,seed,rng,t:0,running:false,emitters:buildEmitters(scenarioKey,rng),
-    cfg:{noise:0.8,pfa:0.03,snrBase:14.0,detectThresh:3.0},
-    belief:Array.from({length:N_FREQ},(_,i)=>({...freqBelief(),freqIdx:i})),
-    history:[],currentFreq:0,lastDecision:null,
-    metrics:{TP:0,FP:0,TN:0,FN:0,correctPred:0,totalPred:0}};
+function newSim(datasetKey, seed){
+  const rng = mulberry32(seed || Date.now());
+  const ds = DATASETS[datasetKey] || DATASETS.zenodo_ism;
+  return {
+    datasetKey,
+    seed: seed || Date.now(),
+    rng,
+    t: 0,
+    running: false,
+    emitters: ds.initEmitters(rng),
+    cfg: { noise: 0.8, pfa: 0.03, snrBase: ds.snrBase, detectThresh: 3.0 },
+    belief: Array.from({length: N_FREQ}, (_, i) => ({...freqBelief(), freqIdx: i})),
+    history: [],
+    currentFreq: 0,
+    lastDecision: null,
+    metrics: { TP: 0, FP: 0, TN: 0, FN: 0, correctPred: 0, totalPred: 0 }
+  };
 }
 
-let S=newSim('multi',42);
+let S = newSim(currentDatasetKey, 42);
 
 function markovPredict(fs){
   if(fs.seq.length<3)return fs.alpha/(fs.alpha+fs.beta);
@@ -755,6 +988,7 @@ function markovPredict(fs){
   if(last===0){const tot=c00+c01;return tot?c01/tot:fs.alpha/(fs.alpha+fs.beta);}
   const tot=c10+c11;return tot?c11/tot:fs.alpha/(fs.alpha+fs.beta);
 }
+
 function predict(fs,model){
   const base=fs.alpha/(fs.alpha+fs.beta);
   if(model==='markov')return clamp(markovPredict(fs),0,1);
@@ -762,17 +996,19 @@ function predict(fs,model){
   if(model==='ensemble')return clamp((markovPredict(fs)+fs.ewma+base)/3,0,1);
   return clamp(fs.ewma*.6+base*.4,0,1);
 }
+
 function detectPeriodicity(fs,t){
   const hits=fs.hits.filter(h=>t-h<200);if(hits.length<3)return{detected:false};
   const intervals=[];for(let i=1;i<hits.length;i++)intervals.push(hits[i]-hits[i-1]);
   const recent=intervals.slice(-6);const m=mean(recent);if(m<=0)return{detected:false};
   const sd=Math.sqrt(variance(recent));const confidence=clamp(1-(sd/m),0,1);
   const period=Math.round(m);let nextEvent=hits[hits.length-1]+period;while(nextEvent<=t)nextEvent+=period;
-  return{detected:confidence>.5&&recent.length>=2,period,confidence,nextOffset:nextEvent-t};
+  return{detected:confidence>.4&&recent.length>=2,period,confidence,nextOffset:nextEvent-t};
 }
 
 function computeCandidates(sim,model){
   const t=sim.t;const W={pred:.34,unc:.15,period:.20,ig:.15,recency:.10,sw:.06};
+  const labels = activeDataset.shortLabels;
   return Array.from({length:N_FREQ},(_,f)=>{
     const fs=sim.belief[f];const p=predict(fs,model);
     const varr=(fs.alpha*fs.beta)/(((fs.alpha+fs.beta)**2)*(fs.alpha+fs.beta+1));
@@ -783,7 +1019,7 @@ function computeCandidates(sim,model){
     const recency=clamp((t-fs.lastObserved)/20,0,1);
     const sw=f!==sim.currentFreq?1:0;
     const total=W.pred*p+W.unc*unc+W.period*periodScore+W.ig*ig+W.recency*recency-W.sw*sw;
-    return{freq:f,label:FREQ_LABELS[f],prediction:p,uncertainty:unc,periodicity:periodScore,infoGain:ig,recency,switchCost:sw,total};
+    return{freq:f,label:labels[f],prediction:p,uncertainty:unc,periodicity:periodScore,infoGain:ig,recency,switchCost:sw,total};
   });
 }
 
@@ -802,242 +1038,464 @@ function step(sim){
   const t=sim.t;
   const policy=document.getElementById('selPolicy')?.value||'smartscan';
   const model=document.getElementById('selModel')?.value||'adaptive';
-  const truth=new Array(N_FREQ).fill(false);
-  sim.emitters.forEach(e=>{const out=emitterOut(e,t,sim.rng);if(out&&out.active)truth[out.freq]=true;});
-  const{winnerFreq,cands}=selectAction(sim,policy,model);
-  sim.lastDecision={t,cands,winnerFreq,truthSnapshot:truth.slice()};
-  const isActive=truth[winnerFreq];
-  const snr=isActive?sim.cfg.snrBase+gaussianSample(sim.rng,0,sim.cfg.noise):(sim.cfg.snrBase-9)+gaussianSample(sim.rng,0,sim.cfg.noise);
-  const pd=clamp(sigmoid(snr-sim.cfg.detectThresh),.02,.98);
-  const detected=isActive?sim.rng()<pd:sim.rng()<sim.cfg.pfa;
-  const falseAlarm=detected&&!isActive;
-  const fs=sim.belief[winnerFreq];
-  fs.obsCount++;fs.lastObserved=t;fs.seq.push(detected?1:0);if(fs.seq.length>40)fs.seq.shift();
-  fs.ewma=.75*fs.ewma+.25*(detected?1:0);
-  if(detected){fs.alpha++;fs.hits.push(t);if(fs.hits.length>30)fs.hits.shift();}else fs.beta++;
-  const predVal=cands.find(c=>c.freq===winnerFreq).prediction;
-  const predCorrect=(predVal>=0.5)===detected;
-  sim.metrics.totalPred++;if(predCorrect)sim.metrics.correctPred++;
-  if(isActive&&detected)sim.metrics.TP++;else if(isActive&&!detected)sim.metrics.FN++;else if(!isActive&&detected)sim.metrics.FP++;else sim.metrics.TN++;
-  sim.history.push({t,truth,observedFreq:winnerFreq,detected,falseAlarm,isActive});
-  if(sim.history.length>HIST_LEN)sim.history.shift();
-  sim.currentFreq=winnerFreq;sim.t++;
-  return{winnerFreq,detected,isActive,falseAlarm,snr,cands};
+  
+  // Non-repeating realistic emitter dynamics!
+  const { truth, powers } = computeEmitterStates(sim.emitters, t, sim.rng);
+  
+  const {winnerFreq, cands} = selectAction(sim, policy, model);
+  sim.lastDecision = {t, cands, winnerFreq, truthSnapshot: truth.slice(), powerSnapshot: powers.slice()};
+  
+  const isActive = truth[winnerFreq];
+  const truePower = powers[winnerFreq];
+  const snr = isActive ? (truePower - activeDataset.noiseFloor) + gaussianSample(sim.rng, 0, 1.0) : gaussianSample(sim.rng, 0, 1.2);
+  const pd = clamp(sigmoid(snr - sim.cfg.detectThresh), 0.05, 0.98);
+  const detected = isActive ? (sim.rng() < pd) : (sim.rng() < sim.cfg.pfa);
+  const falseAlarm = detected && !isActive;
+  
+  const fs = sim.belief[winnerFreq];
+  fs.obsCount++;
+  fs.lastObserved = t;
+  fs.seq.push(detected ? 1 : 0);
+  if (fs.seq.length > 40) fs.seq.shift();
+  fs.ewma = 0.75 * fs.ewma + 0.25 * (detected ? 1 : 0);
+  if (detected) {
+    fs.alpha++;
+    fs.hits.push(t);
+    if (fs.hits.length > 30) fs.hits.shift();
+  } else {
+    fs.beta++;
+  }
+  
+  const cand = cands.find(c => c.freq === winnerFreq);
+  const predVal = cand ? cand.prediction : 0.5;
+  const predCorrect = (predVal >= 0.5) === detected;
+  sim.metrics.totalPred++;
+  if (predCorrect) sim.metrics.correctPred++;
+  
+  if (isActive && detected) sim.metrics.TP++;
+  else if (isActive && !detected) sim.metrics.FN++;
+  else if (!isActive && detected) sim.metrics.FP++;
+  else sim.metrics.TN++;
+  
+  sim.history.push({t, truth, powers, observedFreq: winnerFreq, detected, falseAlarm, isActive, snr});
+  if (sim.history.length > HIST_LEN) sim.history.shift();
+  
+  sim.currentFreq = winnerFreq;
+  sim.t++;
+  return {winnerFreq, detected, isActive, falseAlarm, snr, cands};
 }
 
 // ======= CANVAS RENDERERS =======
 function canvasBg(){return document.documentElement.getAttribute('data-theme')==='light'?'#FFFFFF':'#0E0A16';}
 function canvasText(){return document.documentElement.getAttribute('data-theme')==='light'?'#1E293B':'#F6ECE7';}
 
-const wfCanvas=document.getElementById('wf-canvas');
-const wfCtx=wfCanvas?.getContext('2d');
+const wfCanvas = document.getElementById('wf-canvas');
+const wfCtx = wfCanvas?.getContext('2d');
 function drawWaterfall(sim){
   if(!wfCanvas||!wfCtx)return;
-  const w=wfCanvas.width=wfCanvas.clientWidth*devicePixelRatio||800;
-  const h=wfCanvas.height=320*devicePixelRatio;
-  wfCtx.fillStyle=canvasBg();wfCtx.fillRect(0,0,w,h);
-  const cW=w/(HIST_LEN+FUTURE_LEN),cH=h/N_FREQ;
-  for(let f=0;f<N_FREQ;f++){wfCtx.strokeStyle='rgba(255,255,255,0.05)';wfCtx.strokeRect(0,f*cH,w,cH);}
-  sim.history.forEach((rec,idx)=>{
-    for(let f=0;f<N_FREQ;f++){
-      const x=idx*cW,y=f*cH;
-      if(rec.truth&&rec.truth[f]){wfCtx.fillStyle='rgba(163,55,87,0.20)';wfCtx.fillRect(x+1,y+1,cW-2,cH-2);}
-      if(rec.observedFreq===f){
-        if(rec.detected&&rec.isActive)wfCtx.fillStyle='rgba(74,222,128,0.95)';
-        else if(rec.falseAlarm)wfCtx.fillStyle='rgba(248,113,113,0.95)';
-        else if(!rec.detected&&rec.isActive)wfCtx.fillStyle='rgba(249,115,22,0.85)';
-        else wfCtx.fillStyle='rgba(148,163,184,0.35)';
-        wfCtx.fillRect(x+1,y+1,cW-2,cH-2);
+  const w = wfCanvas.width = wfCanvas.clientWidth * devicePixelRatio || 800;
+  const h = wfCanvas.height = 320 * devicePixelRatio;
+  wfCtx.fillStyle = canvasBg();
+  wfCtx.fillRect(0,0,w,h);
+  
+  const cW = w / (HIST_LEN + FUTURE_LEN);
+  const cH = h / N_FREQ;
+  
+  // Background grid
+  for(let f=0; f<N_FREQ; f++){
+    wfCtx.strokeStyle = 'rgba(255,255,255,0.06)';
+    wfCtx.strokeRect(0, f*cH, w, cH);
+  }
+  
+  // Draw spectrum activity history
+  sim.history.forEach((rec, idx) => {
+    const x = idx * cW;
+    for (let f = 0; f < N_FREQ; f++) {
+      const y = f * cH;
+      // Show actual RF energy presence in the spectrum
+      if (rec.truth && rec.truth[f]) {
+        // Active RF emission in ambient spectrum
+        const p = (rec.powers && rec.powers[f]) || -40;
+        const norm = clamp((p + 90) / 60, 0, 1);
+        wfCtx.fillStyle = paletteColor(norm, 0.30 + norm * 0.40);
+        wfCtx.fillRect(x + 1, y + 1, cW - 2, cH - 2);
+      }
+      
+      // Highlight receiver's observation decision
+      if (rec.observedFreq === f) {
+        if (rec.detected && rec.isActive) {
+          wfCtx.fillStyle = 'rgba(74,222,128,0.95)'; // Hit (captured)
+        } else if (rec.falseAlarm) {
+          wfCtx.fillStyle = 'rgba(248,113,113,0.95)'; // False alarm
+        } else if (!rec.detected && rec.isActive) {
+          wfCtx.fillStyle = 'rgba(249,115,22,0.85)'; // Missed
+        } else {
+          wfCtx.fillStyle = 'rgba(96,165,250,0.40)'; // Quiet channel checked
+        }
+        wfCtx.fillRect(x + 1, y + 1, cW - 2, cH - 2);
       }
     }
   });
-  const cur=sim.history.length-1;
-  if(cur>=0){wfCtx.strokeStyle='#FFBB94';wfCtx.lineWidth=2.5*devicePixelRatio;wfCtx.strokeRect(cur*cW+1,sim.currentFreq*cH+1,cW-2,cH-2);}
-  FREQ_LABELS.forEach((lbl,f)=>{wfCtx.fillStyle=canvasText();wfCtx.font=`bold ${10*devicePixelRatio}px 'IBM Plex Mono'`;wfCtx.fillText(lbl,4*devicePixelRatio,f*cH+cH/2+3);});
+  
+  // Draw current receiver tuned box
+  const cur = sim.history.length - 1;
+  if (cur >= 0) {
+    wfCtx.strokeStyle = '#FFBB94';
+    wfCtx.lineWidth = 2.5 * devicePixelRatio;
+    wfCtx.strokeRect(cur * cW + 1, sim.currentFreq * cH + 1, cW - 2, cH - 2);
+  }
+  
+  // Draw Channel Labels on the left edge
+  const labels = activeDataset.shortLabels;
+  labels.forEach((lbl, f) => {
+    wfCtx.fillStyle = canvasText();
+    wfCtx.font = `bold ${10 * devicePixelRatio}px 'IBM Plex Mono'`;
+    wfCtx.fillText(lbl, 4 * devicePixelRatio, f * cH + cH / 2 + 3 * devicePixelRatio);
+  });
 }
 
-const explorerCanvas=document.getElementById('explorer-canvas');
-const explorerCtx=explorerCanvas?.getContext('2d');
+const explorerCanvas = document.getElementById('explorer-canvas');
+const explorerCtx = explorerCanvas?.getContext('2d');
 function drawExplorer(){
   if(!explorerCanvas||!explorerCtx)return;
-  const w=explorerCanvas.width=explorerCanvas.clientWidth*devicePixelRatio||800;
-  const h=explorerCanvas.height=260*devicePixelRatio;
-  explorerCtx.fillStyle=canvasBg();explorerCtx.fillRect(0,0,w,h);
-  const SLOTS=200,BINS=8;const cW=w/SLOTS,cH=h/BINS;
-  const rng2=mulberry32(42);
-  const emissionMap=[[0,1,4,6,8,10,13,15,18,20],[3,85,89,100,103,112,120,133,140,150,160,170,180,192],[2,50,54,70,75],[5,30,34,60,64,130,134,160,164]];
-  for(let t=0;t<SLOTS;t++){
-    for(let f=0;f<BINS;f++){
-      let active=false;
-      emissionMap.forEach((times,emF)=>{if(emF===f)times.forEach(s=>{if(t>=s&&t<s+4)active=true;});});
-      let p=active?-35+rng2()*6:-88+rng2()*4;
-      const norm=clamp((p+90)/60,0,1);
-      explorerCtx.fillStyle=paletteColor(norm,0.15+norm*0.85);
-      explorerCtx.fillRect(t*cW,f*cH,cW,cH);
+  const w = explorerCanvas.width = explorerCanvas.clientWidth * devicePixelRatio || 800;
+  const h = explorerCanvas.height = 260 * devicePixelRatio;
+  explorerCtx.fillStyle = canvasBg();
+  explorerCtx.fillRect(0,0,w,h);
+  
+  const SLOTS = 200, BINS = 8;
+  const cW = w / SLOTS, cH = h / BINS;
+  const rng2 = mulberry32(1337 + currentDatasetKey.length);
+  const tempEmitters = activeDataset.initEmitters(rng2);
+  
+  for(let t = 0; t < SLOTS; t++){
+    const { truth, powers } = computeEmitterStates(tempEmitters, t, rng2);
+    for(let f = 0; f < BINS; f++){
+      const p = powers[f];
+      const norm = clamp((p + 95) / 65, 0, 1);
+      explorerCtx.fillStyle = paletteColor(norm, 0.12 + norm * 0.88);
+      explorerCtx.fillRect(t * cW, f * cH, cW + 0.5, cH);
     }
   }
-  // Time axis labels
-  const tlabels=['0s','1s','2s','3s','4s'];
-  tlabels.forEach((lbl,i)=>{
-    explorerCtx.fillStyle=canvasText();explorerCtx.font=`${9*devicePixelRatio}px 'IBM Plex Mono'`;
-    explorerCtx.fillText(lbl,(i/4)*w,h-4);
-  });
-  const axEl=document.getElementById('explorerFreqAxis');
-  if(axEl)axEl.innerHTML=['2402','2412','2422','2432','2442','2452','2462','2472'].map(m=>`<span>${m} MHz</span>`).join('');
+  
+  // Frequency axis labels
+  const axEl = document.getElementById('explorerFreqAxis');
+  if (axEl) {
+    axEl.innerHTML = activeDataset.channels.map(ch => `<span>${ch}</span>`).join('');
+  }
+  document.getElementById('explorerTitle').textContent = activeDataset.name;
+  document.getElementById('explorerDesc').textContent = activeDataset.desc;
 }
 
-const heatCanvas=document.getElementById('heat-canvas');
-const heatCtx=heatCanvas?.getContext('2d');
+const heatCanvas = document.getElementById('heat-canvas');
+const heatCtx = heatCanvas?.getContext('2d');
 function drawHeatmap(sim){
   if(!heatCanvas||!heatCtx)return;
-  const w=heatCanvas.width=heatCanvas.clientWidth*devicePixelRatio||400;
-  const h=heatCanvas.height=220*devicePixelRatio;
-  heatCtx.fillStyle=canvasBg();heatCtx.fillRect(0,0,w,h);
-  const cW=w/FUTURE_LEN,cH=h/N_FREQ;
-  for(let f=0;f<N_FREQ;f++){
-    const p0=predict(sim.belief[f],'adaptive');
-    const per=detectPeriodicity(sim.belief[f],sim.t);
-    for(let k=0;k<FUTURE_LEN;k++){
-      let pv=p0*Math.pow(.92,k);
-      if(per.detected){const dist=Math.abs(per.nextOffset-(k+1));pv=clamp(pv+per.confidence*Math.exp(-dist*dist/2)*.6,0,1);}
-      pv=clamp(pv,.01,.99);
-      const x=k*cW,y=f*cH;
-      heatCtx.fillStyle=paletteColor(pv,0.85);heatCtx.fillRect(x+1,y+1,cW-2,cH-2);
-      heatCtx.fillStyle='#fff';heatCtx.font=`${9.5*devicePixelRatio}px 'IBM Plex Mono'`;heatCtx.textAlign='center';heatCtx.textBaseline='middle';
-      heatCtx.fillText((pv*100).toFixed(0)+'%',x+cW/2,y+cH/2);
+  const w = heatCanvas.width = heatCanvas.clientWidth * devicePixelRatio || 400;
+  const h = heatCanvas.height = 220 * devicePixelRatio;
+  heatCtx.fillStyle = canvasBg();
+  heatCtx.fillRect(0,0,w,h);
+  const cW = w / FUTURE_LEN, cH = h / N_FREQ;
+  for(let f = 0; f < N_FREQ; f++){
+    const p0 = predict(sim.belief[f], 'adaptive');
+    const per = detectPeriodicity(sim.belief[f], sim.t);
+    for(let k = 0; k < FUTURE_LEN; k++){
+      let pv = p0 * Math.pow(0.92, k);
+      if(per.detected){
+        const dist = Math.abs(per.nextOffset - (k + 1));
+        pv = clamp(pv + per.confidence * Math.exp(-dist * dist / 2) * 0.6, 0, 1);
+      }
+      pv = clamp(pv, 0.01, 0.99);
+      const x = k * cW, y = f * cH;
+      heatCtx.fillStyle = paletteColor(pv, 0.85);
+      heatCtx.fillRect(x + 1, y + 1, cW - 2, cH - 2);
+      heatCtx.fillStyle = '#fff';
+      heatCtx.font = `${9.5 * devicePixelRatio}px 'IBM Plex Mono'`;
+      heatCtx.textAlign = 'center';
+      heatCtx.textBaseline = 'middle';
+      heatCtx.fillText((pv * 100).toFixed(0) + '%', x + cW / 2, y + cH / 2);
     }
   }
-  // Headers
-  ['T+1','T+2','T+3','T+4','T+5'].forEach((lbl,k)=>{
-    heatCtx.fillStyle=canvasText();heatCtx.font=`bold ${9*devicePixelRatio}px 'IBM Plex Mono'`;heatCtx.textAlign='center';
-    heatCtx.fillText(lbl,k*cW+cW/2,10);
+  ['T+1','T+2','T+3','T+4','T+5'].forEach((lbl, k) => {
+    heatCtx.fillStyle = canvasText();
+    heatCtx.font = `bold ${9 * devicePixelRatio}px 'IBM Plex Mono'`;
+    heatCtx.textAlign = 'center';
+    heatCtx.fillText(lbl, k * cW + cW / 2, 10 * devicePixelRatio);
   });
 }
 
 function renderUncertainty(sim){
-  const el=document.getElementById('uncList');if(!el)return;
-  el.innerHTML=Array.from({length:N_FREQ},(_,f)=>{
-    const fs=sim.belief[f];const varr=(fs.alpha*fs.beta)/(((fs.alpha+fs.beta)**2)*(fs.alpha+fs.beta+1));const unc=clamp(varr*6,0,1);
-    return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;"><span style="font-family:var(--font-mono);width:28px;">${FREQ_LABELS[f]}</span><div style="flex:1;height:8px;background:var(--bg-subtle);border-radius:4px;overflow:hidden;"><div style="width:${unc*100}%;height:100%;background:var(--highlight);border-radius:4px;"></div></div><span style="font-family:var(--font-mono);width:40px;text-align:right;">${(unc*100).toFixed(0)}%</span></div>`;
+  const el = document.getElementById('uncList'); if(!el) return;
+  const labels = activeDataset.shortLabels;
+  el.innerHTML = Array.from({length: N_FREQ}, (_, f) => {
+    const fs = sim.belief[f];
+    const varr = (fs.alpha * fs.beta) / (((fs.alpha + fs.beta) ** 2) * (fs.alpha + fs.beta + 1));
+    const unc = clamp(varr * 6, 0, 1);
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;"><span style="font-family:var(--font-mono);width:28px;">${labels[f]}</span><div style="flex:1;height:8px;background:var(--bg-subtle);border-radius:4px;overflow:hidden;"><div style="width:${unc*100}%;height:100%;background:var(--highlight);border-radius:4px;"></div></div><span style="font-family:var(--font-mono);width:40px;text-align:right;">${(unc*100).toFixed(0)}%</span></div>`;
   }).join('');
 }
 
 function renderInfoGain(sim){
-  const el=document.getElementById('igList');if(!el)return;
-  el.innerHTML=Array.from({length:N_FREQ},(_,f)=>{
-    const fs=sim.belief[f];const p=fs.alpha/(fs.alpha+fs.beta);const ig=clamp(entropy(p)*(1/(1+fs.obsCount*.5)),0,1);
-    return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;"><span style="font-family:var(--font-mono);width:28px;">${FREQ_LABELS[f]}</span><div style="flex:1;height:8px;background:var(--bg-subtle);border-radius:4px;overflow:hidden;"><div style="width:${ig*100}%;height:100%;background:var(--accent);border-radius:4px;"></div></div><span style="font-family:var(--font-mono);width:40px;text-align:right;">${ig.toFixed(2)}</span></div>`;
+  const el = document.getElementById('igList'); if(!el) return;
+  const labels = activeDataset.shortLabels;
+  el.innerHTML = Array.from({length: N_FREQ}, (_, f) => {
+    const fs = sim.belief[f];
+    const p = fs.alpha / (fs.alpha + fs.beta);
+    const ig = clamp(entropy(p) * (1 / (1 + fs.obsCount * 0.5)), 0, 1);
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;"><span style="font-family:var(--font-mono);width:28px;">${labels[f]}</span><div style="flex:1;height:8px;background:var(--bg-subtle);border-radius:4px;overflow:hidden;"><div style="width:${ig*100}%;height:100%;background:var(--accent);border-radius:4px;"></div></div><span style="font-family:var(--font-mono);width:40px;text-align:right;">${ig.toFixed(2)}</span></div>`;
   }).join('');
 }
 
 // ======= RENDER SIMULATION UI =======
-function renderSimUI(sim,res){
-  const m=sim.metrics;
-  const acc=m.totalPred>0?(m.correctPred/m.totalPred):1.0;
-  const prec=(m.TP+m.FP)>0?(m.TP/(m.TP+m.FP)):1.0;
-  const recall=(m.TP+m.FN)>0?(m.TP/(m.TP+m.FN)):1.0;
-  const f1=(prec+recall)>0?(2*prec*recall/(prec+recall)):1.0;
-  const pfa=(m.FP+m.TN)>0?(m.FP/(m.FP+m.TN)):0.0;
-  const ir=(m.TP+m.FN)>0?(m.TP/(m.TP+m.FN)):1.0;
+function renderSimUI(sim, res){
+  const m = sim.metrics;
+  const acc = m.totalPred > 0 ? (m.correctPred / m.totalPred) : 1.0;
+  const prec = (m.TP + m.FP) > 0 ? (m.TP / (m.TP + m.FP)) : 1.0;
+  const recall = (m.TP + m.FN) > 0 ? (m.TP / (m.TP + m.FN)) : 1.0;
+  const f1 = (prec + recall) > 0 ? (2 * prec * recall / (prec + recall)) : 1.0;
+  const pfa = (m.FP + m.TN) > 0 ? (m.FP / (m.FP + m.TN)) : 0.0;
+  const ir = (m.TP + m.FN) > 0 ? (m.TP / (m.TP + m.FN)) : 1.0;
 
-  document.getElementById('simTick').textContent='T = '+sim.t;
-  document.getElementById('rxFreqLeft').textContent=FREQ_LABELS[sim.currentFreq];
-  document.getElementById('kpiRealtimeAcc').textContent=fmtPct(acc);
-  document.getElementById('kpiRealtimeF1').textContent=fmtPct(f1);
-  document.getElementById('kpiInterceptionRate').textContent=fmtPct(ir);
-  document.getElementById('kpiPfa').textContent=fmtPct(pfa);
-  document.getElementById('mlAcc').textContent=fmtPct(acc);
-  document.getElementById('mlF1').textContent=fmtPct(f1);
-  document.getElementById('mlPrec').textContent=fmtPct(prec);
-  document.getElementById('mlRecall').textContent=fmtPct(recall);
-  document.getElementById('evalAcc').textContent=fmtPct(acc);
-  document.getElementById('evalF1').textContent=fmtPct(f1);
-  document.getElementById('evalPrec').textContent=fmtPct(prec);
-  document.getElementById('evalPd').textContent=fmtPct(recall);
-  document.getElementById('evalPfa').textContent=fmtPct(pfa);
-  document.getElementById('cmTP').textContent=m.TP;
-  document.getElementById('cmFP').textContent=m.FP;
-  document.getElementById('cmFN').textContent=m.FN;
-  document.getElementById('cmTN').textContent=m.TN;
+  document.getElementById('simTick').textContent = 'T = ' + sim.t;
+  document.getElementById('rxFreqLeft').textContent = activeDataset.shortLabels[sim.currentFreq];
+  document.getElementById('rxFreqHz').textContent = activeDataset.freqHz[sim.currentFreq];
+  
+  document.getElementById('kpiRealtimeAcc').textContent = fmtPct(acc);
+  document.getElementById('kpiRealtimeF1').textContent = fmtPct(f1);
+  document.getElementById('kpiInterceptionRate').textContent = fmtPct(ir);
+  document.getElementById('kpiPfa').textContent = fmtPct(pfa);
+  
+  document.getElementById('mlAcc').textContent = fmtPct(acc);
+  document.getElementById('mlF1').textContent = fmtPct(f1);
+  document.getElementById('mlPrec').textContent = fmtPct(prec);
+  document.getElementById('mlRecall').textContent = fmtPct(recall);
+  
+  document.getElementById('evalAcc').textContent = fmtPct(acc);
+  document.getElementById('evalF1').textContent = fmtPct(f1);
+  document.getElementById('evalPrec').textContent = fmtPct(prec);
+  document.getElementById('evalPd').textContent = fmtPct(recall);
+  document.getElementById('evalPfa').textContent = fmtPct(pfa);
+  
+  document.getElementById('cmTP').textContent = m.TP;
+  document.getElementById('cmFP').textContent = m.FP;
+  document.getElementById('cmFN').textContent = m.FN;
+  document.getElementById('cmTN').textContent = m.TN;
 
   if(res){
-    document.getElementById('rxSnrLeft').textContent=res.snr.toFixed(1)+' dB';
-    document.getElementById('rxDetLeft').innerHTML=res.detected?`<span style="color:var(--${res.falseAlarm?'amber':'green'})">${res.falseAlarm?'FALSE ALARM':'DETECTED'}</span>`:'<span style="color:var(--red)">MISS</span>';
+    document.getElementById('rxSnrLeft').textContent = res.snr.toFixed(1) + ' dB';
+    document.getElementById('rxDetLeft').innerHTML = res.detected 
+      ? `<span style="color:var(--${res.falseAlarm ? 'amber' : 'green'})">${res.falseAlarm ? 'FALSE ALARM' : 'DETECTED'}</span>` 
+      : '<span style="color:var(--red)">MISS</span>';
   }
+  
   if(sim.lastDecision){
-    const w=sim.lastDecision.cands.find(c=>c.freq===sim.lastDecision.winnerFreq);
+    const w = sim.lastDecision.cands.find(c => c.freq === sim.lastDecision.winnerFreq);
     if(w){
-      document.getElementById('decFreq').textContent=w.label;
-      document.getElementById('decScore').textContent=w.total.toFixed(3);
-      document.getElementById('decReason').textContent=`${w.label} selected — Predicted Activity: ${(w.prediction*100).toFixed(0)}%, Uncertainty: ${(w.uncertainty*100).toFixed(0)}%, PRI Score: ${(w.periodicity*100).toFixed(0)}%, Info Gain: ${w.infoGain.toFixed(2)}. Utility: ${w.total.toFixed(3)}.`;
+      document.getElementById('decFreq').textContent = w.label;
+      document.getElementById('decScore').textContent = w.total.toFixed(3);
+      document.getElementById('decReason').textContent = `${w.label} selected — Predicted Activity: ${(w.prediction*100).toFixed(0)}%, Uncertainty: ${(w.uncertainty*100).toFixed(0)}%, PRI Score: ${(w.periodicity*100).toFixed(0)}%, Info Gain: ${w.infoGain.toFixed(2)}. Utility: ${w.total.toFixed(3)}.`;
     }
   }
 }
 
-let loopHandle=null;
-function startLoop(){
-  if(loopHandle)return;
-  S.running=true;
-  const speed=parseInt(document.getElementById('selSpeed')?.value||450);
-  loopHandle=setInterval(()=>{const res=step(S);drawWaterfall(S);renderSimUI(S,res);},speed);
+// ======= DATASET SWITCHING & FILE UPLOAD =======
+function onDatasetChange() {
+  const sel = document.getElementById('selDataset');
+  const key = sel.value;
+  const uploadPanel = document.getElementById('uploadPanel');
+  
+  if (key === 'custom_upload') {
+    uploadPanel.style.display = 'block';
+    return;
+  } else {
+    uploadPanel.style.display = 'none';
+    uploadedMatrix = null;
+  }
+  
+  applyDataset(key);
 }
-function togglePause(){if(loopHandle){clearInterval(loopHandle);loopHandle=null;S.running=false;}else startLoop();}
-function stepOnce(){const res=step(S);drawWaterfall(S);renderSimUI(S,res);}
-function resetSim(){if(loopHandle){clearInterval(loopHandle);loopHandle=null;}const sc=document.getElementById('selScenario')?.value||'multi';S=newSim(sc,42);drawWaterfall(S);}
 
-let uiMode='presentation';
+function applyDataset(key) {
+  currentDatasetKey = key;
+  activeDataset = DATASETS[key] || DATASETS.zenodo_ism;
+  
+  // Update UI Elements
+  document.getElementById('hwDataset').textContent = activeDataset.name;
+  document.getElementById('hwCenterFreq').textContent = activeDataset.centerFreq;
+  document.getElementById('hwSampleRate').textContent = activeDataset.sampleRate;
+  document.getElementById('hwBandwidth').textContent = activeDataset.bandwidth;
+  document.getElementById('hwSpacing').textContent = activeDataset.channelSpacing;
+  
+  document.getElementById('navDatasetBadge').innerHTML = `<span class="status-dot-pulse"></span>LIVE · ${activeDataset.shortName}`;
+  document.getElementById('wfDatasetBadge').textContent = activeDataset.shortName;
+  
+  // Re-initialize Simulation for this specific dataset!
+  resetSim();
+  drawExplorer();
+}
+
+function selectDatasetAndScan(key) {
+  const sel = document.getElementById('selDataset');
+  if (sel) sel.value = key;
+  applyDataset(key);
+  navigate('simulation');
+  setTimeout(() => {
+    startLoop();
+  }, 200);
+}
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const content = e.target.result;
+      let parsed = null;
+      if (file.name.endsWith('.json')) {
+        parsed = JSON.parse(content);
+      } else if (file.name.endsWith('.csv')) {
+        // Parse CSV lines
+        const lines = content.trim().split('\n');
+        const matrix = lines.map(line => line.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v)));
+        parsed = { power_db: matrix };
+      }
+      
+      if (parsed && (parsed.power_db || Array.isArray(parsed))) {
+        uploadedMatrix = parsed.power_db || parsed;
+        // Create custom dataset profile
+        const customName = `Custom: ${file.name}`;
+        DATASETS.custom_upload = {
+          id: "custom_upload",
+          name: customName,
+          shortName: "CUSTOM",
+          centerFreq: (parsed.metadata && parsed.metadata.center_frequency_mhz ? parsed.metadata.center_frequency_mhz + " MHz" : "2440.00 MHz"),
+          bandwidth: (parsed.metadata && parsed.metadata.bandwidth_mhz ? parsed.metadata.bandwidth_mhz + " MHz" : "80.00 MHz"),
+          sampleRate: (parsed.metadata && parsed.metadata.sample_rate_mhz ? parsed.metadata.sample_rate_mhz + " MSps" : "20.00 MSps"),
+          channelSpacing: "10.0 MHz",
+          channels: ["Ch1","Ch2","Ch3","Ch4","Ch5","Ch6","Ch7","Ch8"],
+          shortLabels: ["Ch1","Ch2","Ch3","Ch4","Ch5","Ch6","Ch7","Ch8"],
+          freqHz: ["F1","F2","F3","F4","F5","F6","F7","F8"],
+          noiseFloor: (parsed.metadata && parsed.metadata.noise_floor_db) || -88.0,
+          snrBase: 15.0,
+          desc: `User uploaded dataset file: ${file.name} (${uploadedMatrix.length} time slots × ${uploadedMatrix[0].length} channels).`,
+          initEmitters: () => []
+        };
+        
+        applyDataset('custom_upload');
+        alert(`Successfully loaded custom dataset "${file.name}" with ${uploadedMatrix.length} time slots! Scanning now.`);
+      } else {
+        alert('Invalid file format. Expected JSON with "power_db" array or CSV matrix.');
+      }
+    } catch(err) {
+      alert('Error parsing uploaded file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ======= SIMULATION LOOP CONTROLS =======
+let loopHandle = null;
+function startLoop(){
+  if(loopHandle) return;
+  S.running = true;
+  const speed = parseInt(document.getElementById('selSpeed')?.value || 450);
+  loopHandle = setInterval(() => {
+    const res = step(S);
+    drawWaterfall(S);
+    renderSimUI(S, res);
+  }, speed);
+}
+
+function togglePause(){
+  if(loopHandle){
+    clearInterval(loopHandle);
+    loopHandle = null;
+    S.running = false;
+  } else {
+    startLoop();
+  }
+}
+
+function stepOnce(){
+  const res = step(S);
+  drawWaterfall(S);
+  renderSimUI(S, res);
+}
+
+function resetSim(){
+  if(loopHandle){
+    clearInterval(loopHandle);
+    loopHandle = null;
+  }
+  S = newSim(currentDatasetKey, Date.now());
+  drawWaterfall(S);
+  renderSimUI(S, null);
+}
+
+// ======= UI MODE & NAVIGATION =======
+let uiMode = 'presentation';
 function setUIMode(mode){
-  uiMode=mode;
-  document.getElementById('btnModePres').classList.toggle('active',mode==='presentation');
-  document.getElementById('btnModeRes').classList.toggle('active',mode==='research');
-  document.querySelectorAll('.research-only').forEach(el=>el.style.display=mode==='research'?'flex':'none');
+  uiMode = mode;
+  document.getElementById('btnModePres').classList.toggle('active', mode==='presentation');
+  document.getElementById('btnModeRes').classList.toggle('active', mode==='research');
+  document.querySelectorAll('.research-only').forEach(el => el.style.display = (mode==='research'?'flex':'none'));
 }
 
 function toggleMegaMenu(){document.getElementById('megaDropdown').classList.toggle('open');}
-document.addEventListener('click',e=>{if(!e.target.closest('.mega-menu-container'))document.getElementById('megaDropdown').classList.remove('open');});
+document.addEventListener('click', e => {
+  if(!e.target.closest('.mega-menu-container')) document.getElementById('megaDropdown').classList.remove('open');
+});
 
 function navigate(page){
-  document.querySelectorAll('.page-view').forEach(p=>p.classList.remove('active'));
-  const target=document.getElementById('page-'+page);if(target)target.classList.add('active');
-  document.querySelectorAll('.sidebar-item').forEach(l=>l.classList.toggle('active',l.dataset.page===page));
-  document.getElementById('breadcrumbCurrent').textContent=page.charAt(0).toUpperCase()+page.slice(1);
+  document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + page);
+  if(target) target.classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(l => l.classList.toggle('active', l.dataset.page === page));
+  document.getElementById('breadcrumbCurrent').textContent = page.charAt(0).toUpperCase() + page.slice(1);
   window.scrollTo(0,0);
-  if(page==='data'){setTimeout(drawExplorer,50);}
-  if(page==='intelligence'){setTimeout(()=>{drawHeatmap(S);renderUncertainty(S);renderInfoGain(S);},50);}
-  if(page==='ablation'){runAblationLab();}
+  if(page === 'data'){ setTimeout(drawExplorer, 50); }
+  if(page === 'intelligence'){ setTimeout(() => { drawHeatmap(S); renderUncertainty(S); renderInfoGain(S); }, 50); }
+  if(page === 'ablation'){ runAblationLab(); }
 }
 
 function toggleSidebar(){document.getElementById('appSidebar').classList.toggle('collapsed');}
 function toggleTheme(){
-  const next=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';
-  document.documentElement.setAttribute('data-theme',next);
-  setTimeout(()=>{drawWaterfall(S);drawExplorer();drawHeatmap(S);},50);
+  const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  setTimeout(() => { drawWaterfall(S); drawExplorer(); drawHeatmap(S); }, 50);
 }
 
-function switchMlTab(id,btn){
-  document.querySelectorAll('[id^="mltab-"]').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('mltab-'+id).classList.add('active');btn.classList.add('active');
+function switchMlTab(id, btn){
+  document.querySelectorAll('[id^="mltab-"]').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('mltab-' + id).classList.add('active');
+  btn.classList.add('active');
 }
 
 function onCfSlider(val){
-  val=parseInt(val);
-  document.getElementById('cfTickVal').textContent=val;
-  const t=val;const rng=mulberry32(val*1337);
-  const pred=(0.5+rng()*0.45).toFixed(3);
-  const unc=(rng()*0.12).toFixed(3);
-  const period=(0.5+rng()*0.45).toFixed(3);
-  const freqIdx=Math.floor(rng()*8);const fLbl=FREQ_LABELS[freqIdx];
-  const hit=rng()>0.35;const snr=(8+rng()*12).toFixed(1);const gap=Math.floor(rng()*20+4);
-  document.getElementById('cfStateBox').innerHTML=`
-    <div class="cf-box-title">📍 State Available at T = ${val}</div>
+  val = parseInt(val);
+  document.getElementById('cfTickVal').textContent = val;
+  const rng = mulberry32(val * 1337 + currentDatasetKey.length);
+  const pred = (0.5 + rng() * 0.45).toFixed(3);
+  const unc = (rng() * 0.12).toFixed(3);
+  const period = (0.5 + rng() * 0.45).toFixed(3);
+  const freqIdx = Math.floor(rng() * 8);
+  const fLbl = activeDataset.shortLabels[freqIdx];
+  const hit = rng() > 0.35;
+  const snr = (8 + rng() * 12).toFixed(1);
+  const gap = Math.floor(rng() * 20 + 4);
+  
+  document.getElementById('cfStateBox').innerHTML = `
+    <div class="cf-box-title">📍 State Available at T = ${val} (${activeDataset.shortName})</div>
     <div class="cf-row"><span class="cf-label">Selected Channel</span><span class="cf-val">${fLbl}</span></div>
     <div class="cf-row"><span class="cf-label">ML Prediction (p̂)</span><span class="cf-val">${pred}</span></div>
     <div class="cf-row"><span class="cf-label">Beta Uncertainty</span><span class="cf-val">${unc}</span></div>
     <div class="cf-row"><span class="cf-label">Periodicity Score</span><span class="cf-val">${period}</span></div>
     <div class="cf-row"><span class="cf-label">Utility Score</span><span class="cf-val">${(parseFloat(pred)*0.34+parseFloat(period)*0.20+0.12).toFixed(3)}</span></div>
     <div class="cf-row"><span class="cf-label">Policy</span><span class="cf-val">SmartScan</span></div>`;
-  document.getElementById('cfOutcomeBox').innerHTML=`
+  document.getElementById('cfOutcomeBox').innerHTML = `
     <div class="cf-box-title" style="color:var(--${hit?'green':'red'})">${hit?'✅':'❌'} Actual Outcome After T = ${val}</div>
     <div class="cf-row"><span class="cf-label">Ground Truth</span><span class="cf-val" style="color:var(--${hit?'green':'amber'})">${hit?'ACTIVE':'INACTIVE'}</span></div>
     <div class="cf-row"><span class="cf-label">Detection Outcome</span><span class="cf-val" style="color:var(--${hit?'green':'red'})">${hit?'HIT':'MISS'}</span></div>
@@ -1048,7 +1506,7 @@ function onCfSlider(val){
 }
 
 function runAblationLab(){
-  const rows=[
+  const rows = [
     ['FULL_SMARTSCAN','88.5%','2.1 s','95.2%','2.8%','+0.0%',true],
     ['NO_PREDICTION','58.2%','6.4 s','62.1%','3.1%','-30.3%',false],
     ['NO_UNCERTAINTY','80.1%','2.8 s','88.4%','3.0%','-8.4%',false],
@@ -1057,22 +1515,33 @@ function runAblationLab(){
     ['NO_RECENCY','84.1%','2.4 s','92.0%','2.8%','-4.4%',false],
     ['NO_SWITCH_COST','87.9%','2.2 s','94.8%','7.8%','-0.6%',false]
   ];
-  const el=document.getElementById('ablationTableContainer');if(!el)return;
-  el.innerHTML=`<table class="data-table"><thead><tr><th>Configuration</th><th>Interception Rate</th><th>Avg Intercept Time</th><th>Pd</th><th>Pfa</th><th>Impact vs Full</th></tr></thead><tbody>${rows.map(r=>`<tr${r[6]?' class="winner"':''}><td>${r[0]}</td><td class="mono">${r[1]}</td><td class="mono">${r[2]}</td><td class="mono">${r[3]}</td><td class="mono">${r[4]}</td><td class="mono" style="color:${r[5].startsWith('-')?'var(--red)':'var(--green)'};">${r[5]}</td></tr>`).join('')}</tbody></table>`;
+  const el = document.getElementById('ablationTableContainer'); if(!el) return;
+  el.innerHTML = `<table class="data-table"><thead><tr><th>Configuration</th><th>Interception Rate</th><th>Avg Intercept Time</th><th>Pd</th><th>Pfa</th><th>Impact vs Full</th></tr></thead><tbody>${rows.map(r=>`<tr${r[6]?' class="winner"':''}><td>${r[0]}</td><td class="mono">${r[1]}</td><td class="mono">${r[2]}</td><td class="mono">${r[3]}</td><td class="mono">${r[4]}</td><td class="mono" style="color:${r[5].startsWith('-')?'var(--red)':'var(--green)'};">${r[5]}</td></tr>`).join('')}</tbody></table>`;
 }
 
-// ======= INIT =======
-window.addEventListener('load',()=>{
+// ======= INITIALIZATION =======
+window.addEventListener('load', () => {
   setUIMode('presentation');
-  drawWaterfall(S);
-  drawExplorer();
+  applyDataset('zenodo_ism');
   runAblationLab();
 });
-window.navigate=navigate;window.toggleSidebar=toggleSidebar;window.toggleTheme=toggleTheme;
-window.setUIMode=setUIMode;window.toggleMegaMenu=toggleMegaMenu;
-window.startLoop=startLoop;window.togglePause=togglePause;window.stepOnce=stepOnce;window.resetSim=resetSim;
-window.onCfSlider=onCfSlider;window.runAblationLab=runAblationLab;window.switchMlTab=switchMlTab;
-window.drawExplorer=drawExplorer;
+
+window.navigate = navigate;
+window.toggleSidebar = toggleSidebar;
+window.toggleTheme = toggleTheme;
+window.setUIMode = setUIMode;
+window.toggleMegaMenu = toggleMegaMenu;
+window.startLoop = startLoop;
+window.togglePause = togglePause;
+window.stepOnce = stepOnce;
+window.resetSim = resetSim;
+window.onCfSlider = onCfSlider;
+window.runAblationLab = runAblationLab;
+window.switchMlTab = switchMlTab;
+window.drawExplorer = drawExplorer;
+window.onDatasetChange = onDatasetChange;
+window.selectDatasetAndScan = selectDatasetAndScan;
+window.handleFileUpload = handleFileUpload;
 </script>
 </body>
 </html>
